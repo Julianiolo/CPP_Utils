@@ -51,7 +51,7 @@ CDEPFLAGS=-MMD -MF ${@:.o=.d}
 
 all:
 	mkdir -p $(BUILD_DIR)
-	touch $(BUILD_DIR)depFile.dep
+	touch $(BUILD_DIR)CPP_Utils_depFile.dep
 
 clean:
 	$(MAKE_CMD) -C "$(RAYLIB_DIR)/src" clean
