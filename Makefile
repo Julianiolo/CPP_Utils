@@ -17,7 +17,7 @@ CFLAGS?=-Wall -Wno-narrowing
 CSTD  ?=-std=c++17
 RELEASE_OPTIM?= -O3 -flto
 
-PROJECT_NAME:=TEMPLATE
+PROJECT_NAME:=CPP_UTILS
 
 SRC_DIR         ?=src/
 BUILD_DIR       ?=build/make/$(PLATFORM)_$(BUILD_MODE)/
