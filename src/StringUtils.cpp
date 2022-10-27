@@ -64,20 +64,17 @@ std::string StringUtils::paddRight(const std::string& s, int paddedLength, char 
 
 std::string StringUtils::loadFileIntoString(const char* path, bool* success) {
 	std::ifstream t(path);
-	std::string fileStr;
-
+	
 	if(!t.is_open()){
 		if (success)
 			*success = false;
 		return "";
 	}
 
-	fileStr = "";
-
 	t.seekg(0, std::ios::end);
 	uint64_t size = t.tellg();
 	t.seekg(0, std::ios::beg);
-	fileStr.resize((size_t)size);
+	std::string fileStr((size_t)size, ' ');
 
 	t.read(&fileStr[0], size);
 	t.close();
