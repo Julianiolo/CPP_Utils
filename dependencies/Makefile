@@ -13,8 +13,10 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     CXX:=em++
 	AR:=emar
 endif
-CFLAGS?=-Wall -Wno-narrowing $(CUSTOM_CFLAGS)
-CSTD:=-std=c++17
+CFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing $(CUSTOM_CFLAGS)
+CXXFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing $(CUSTOM_CXXFLAGS)
+CSTD:=-std=c99
+CXXSTD:=-std=c++17
 RELEASE_OPTIM?= -O2
 
 BUILD_DIR?=build/make/$(PLATFORM)_$(BUILD_MODE)/
@@ -30,11 +32,14 @@ endif
 # get current dir
 current_dir :=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-BUILD_MODE_CFLAGS:=
+DEF_FLAGS:=
+
+BUILD_MODE_FLAGS:=
 ifeq ($(BUILD_MODE),DEBUG)
-	BUILD_MODE_CFLAGS += -g
+	BUILD_MODE_FLAGS +=-g
+	DEF_FLAGS += -D_DEBUG
 else
-	BUILD_MODE_CFLAGS +=$(RELEASE_OPTIM)
+	BUILD_MODE_FLAGS +=$(RELEASE_OPTIM)
 endif
 
 MAKE_CMD?=make
@@ -43,7 +48,11 @@ ifeq ($(BUILD_DIR),build/)
 	BUILD_DIR:=$(current_dir)$(BUILD_DIR)
 endif
 
-CDEPFLAGS=-MMD -MF ${@:.o=.d}
+DEP_FLAGS=-MMD -MF ${@:.o=.d}
+
+
+CFLAGS += $(BUILD_MODE_FLAGS)
+CXXFLAGS += $(BUILD_MODE_FLAGS)
 
 # rules:
 
