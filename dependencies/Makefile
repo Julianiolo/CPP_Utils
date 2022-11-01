@@ -13,7 +13,7 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
     CXX:=em++
 	AR:=emar
 endif
-CFLAGS?=-Wall -Wno-narrowing
+CFLAGS?=-Wall -Wno-narrowing $(CUSTOM_CFLAGS)
 CSTD:=-std=c++17
 RELEASE_OPTIM?= -O2
 
