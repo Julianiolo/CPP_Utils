@@ -218,11 +218,15 @@ uint64_t StringUtils::stof(const char* str, const char* str_end, uint8_t exponen
 	while (isspace(*str_stripped))
 		str_stripped++;
 
-	if (str_stripped >= str_end) // return NaN if string is just empty (or just whitespace)
-		if (atof_compatible)
+	if (str_stripped >= str_end) { // return NaN if string is just empty (or just whitespace)
+		if (atof_compatible) {
 			goto stof_zero;
-		else
+		}
+		else {
 			goto stof_nan;
+		}
+	}
+		
 
 	while (str_end_stripped > str_stripped && isspace(*(str_end_stripped-1)))
 		str_end_stripped--;
