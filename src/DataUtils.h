@@ -2,6 +2,7 @@
 #define __DATAUTILS_H__
 
 #include <iterator>
+#include <string>
 
 namespace DataUtils {
 	template<typename RandomIt,typename T>
@@ -33,6 +34,36 @@ namespace DataUtils {
 
 	fail:
 		return nullptr;
+	}
+
+	namespace EditMemory {
+		enum {
+			EditBase_2 = 0,
+			EditBase_10,
+			EditBase_16,
+			EditBase_COUNT
+		};
+		enum {
+			EditType_8bit = 0,
+			EditType_16bit,
+			EditType_32bit,
+			EditType_64bit,
+			EditType_float,
+			EditType_double,
+			EditType_string,
+			EditType_bytestream,
+			EditType_COUNT
+		};
+		enum {
+			EditEndian_Little = 0,
+			EditEndian_Big,
+			EditEndian_COUNT
+		};
+
+		typedef void (*SetValueCallB)(size_t addr, uint8_t val, void* userData);
+
+		uint64_t readValue(const uint8_t* data, size_t dataLen, uint8_t editType, uint8_t editEndian=EditEndian_Little);
+		bool writeValue(size_t addr, uint64_t val, const std::string& editStr, SetValueCallB setValueCallB, void* setValueUserData, size_t dataLen, bool editStringTerm, bool editReversed, uint8_t editType, uint8_t editEndian=EditEndian_Little);
 	}
 }
 
