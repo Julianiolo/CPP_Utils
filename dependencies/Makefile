@@ -42,8 +42,6 @@ else
 	BUILD_MODE_FLAGS +=$(RELEASE_OPTIM)
 endif
 
-MAKE_CMD?=make
-
 ifeq ($(BUILD_DIR),build/)
 	BUILD_DIR:=$(current_dir)$(BUILD_DIR)
 endif
@@ -63,5 +61,5 @@ all:
 	touch $(BUILD_DIR)CPP_Utils_depFile.dep
 
 clean:
-	$(MAKE_CMD) -C "$(RAYLIB_DIR)/src" clean
+	$(MAKE) -C "$(RAYLIB_DIR)/src" clean
 	rm -rf $(BUILD_DIR)
