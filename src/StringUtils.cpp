@@ -63,7 +63,7 @@ std::string StringUtils::paddRight(const std::string& s, int paddedLength, char 
 }
 
 std::string StringUtils::loadFileIntoString(const char* path, bool* success) {
-	std::ifstream t(path);
+	std::ifstream t(path, std::ios::binary);
 	
 	if(!t.is_open()){
 		if (success)
