@@ -3,6 +3,25 @@
 
 #include "StringUtils.h"
 
+
+uint64_t DataUtils::simpleHash(uint64_t v) {
+	// TODO: is probably trash
+
+	v ^= 0xFA42FE00;
+
+	v = v << 7 | v >> (64 - 7);
+	v *= 47;
+	v += 2246;
+	v = v << 37 | v >> (64 - 37);
+	v *= 63;
+	v -= 5124723;
+	v = v << 12 | v >> (64 - 12);
+	v *= 123;
+	v -= 219840392;
+	return v;
+}
+
+
 uint64_t DataUtils::EditMemory::readValue(const uint8_t* data, size_t dataLen, uint8_t editType, uint8_t editEndian) {
 	uint64_t res = 0;
 	uint16_t bytesToCopy = 0;
