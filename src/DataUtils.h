@@ -36,6 +36,16 @@ namespace DataUtils {
 		return nullptr;
 	}
 
+	template<typename RandomIt, typename T>
+	size_t findVal(RandomIt first, RandomIt last, const T& value) {
+		size_t len = std::distance(first, last);
+		for(size_t i = 0; i<len; i++) {
+			if(*(first + i) == value)
+				return i;
+		}
+		return -1;
+	}
+
 	namespace EditMemory {
 		enum {
 			EditBase_2 = 0,
