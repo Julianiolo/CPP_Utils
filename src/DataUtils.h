@@ -46,6 +46,8 @@ namespace DataUtils {
 		return -1;
 	}
 
+	uint64_t simpleHash(uint64_t v);
+
 	namespace EditMemory {
 		enum {
 			EditBase_2 = 0,
