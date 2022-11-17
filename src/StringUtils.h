@@ -165,6 +165,7 @@ namespace StringUtils {
 	uint8_t getLBS(uint64_t x);
 	uint8_t getHBS(uint64_t x);
 
+	std::string getDirName(const char* path, const char* path_end = NULL);
 	const char* getFileExtension(const char* path, const char* path_end = NULL);
 	const char* getFileName(const char* path, const char* path_end = NULL);
 
