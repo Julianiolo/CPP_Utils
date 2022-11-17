@@ -137,7 +137,7 @@ size_t StringUtils::findCharInStr(char c, const char* str, const char* strEnd) {
 size_t StringUtils::findCharInStrFromBack(char c, const char* str, const char* strEnd) {
 	if (strEnd == nullptr)
 		strEnd = str + std::strlen(str);
-	for (const char* ptr = strEnd; ptr != str; ptr--) {
+	for (const char* ptr = strEnd-1; ptr >= str; ptr--) {
 		if (*ptr == c)
 			return ptr - str;
 	}
@@ -566,9 +566,29 @@ uint8_t StringUtils::getHBS(uint64_t x) {
 	return ret;
 }
 
+
+std::string StringUtils::getDirName(const char* path, const char* path_end) {
+	if (path_end == 0)
+		path_end = path + strlen(path);
+
+	while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
+		path_end--;
+
+	size_t lastSlash = findCharInStrFromBack('/', path, path_end);
+	size_t lastBSlash = findCharInStrFromBack('\\', path, path_end);
+	size_t lastDiv = std::max(lastSlash != (size_t)-1 ? lastSlash : 0, lastBSlash != (size_t)-1 ? lastBSlash : 0);
+
+	if(path+lastDiv+1 >= path_end)
+		return "";
+
+	return std::string(path + lastDiv + 1, path_end);
+}
 const char* StringUtils::getFileName(const char* path, const char* path_end) {
 	if (path_end == 0)
 		path_end = path + strlen(path);
+
+	while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
+		path_end--;
 
 	size_t lastSlash = findCharInStrFromBack('/', path, path_end);
 	size_t lastBSlash = findCharInStrFromBack('\\', path, path_end);
