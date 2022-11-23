@@ -165,12 +165,7 @@ std::vector<std::pair<size_t,std::string>> StringUtils::findStrings(const uint8_
 }
 
 int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, const char* b_end) {
-	if (a_end == NULL)
-		a_end = a + strlen(a);
-	if (b_end == NULL)
-		b_end = b + strlen(b);
-
-	if (a_end - a != b_end - b) {
+	if (a_end && b_end && (a_end - a != b_end - b)) {
 		return a_end - a > b_end - b ? 1 : -1;
 	}
 	
@@ -184,12 +179,13 @@ int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, con
 
 		char ac = *a;
 		char bc = *b;
+
 		if (ac >= 'A' && ac <= 'Z')
 			ac += 'a' - 'A';
 		if (bc >= 'A' && bc <= 'Z')
 			bc += 'a' - 'A';
 
-		if (ac != bc) {
+		if (ac != bc || !a) {
 			return ac - bc;
 		}
 
@@ -200,44 +196,46 @@ int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, con
 	return 0;
 }
 
-
-uint64_t StringUtils::stof(const char* str, const char* str_end, uint8_t exponentBits, uint8_t fractionBits, bool atof_compatible) {
+/*
+	stof[Ex]:
+	input: string, [end of string], [number of exponent bits], [number of fraction bits], [whether it should do exactly the same as atof or be more strict]
+	output: a 64bit integer which stores n bits of output (n = 1+num_ExpBits+num_FracBits) right aligned
+	
+	standard values for exponent num and fraction num are:
+						exp     frac
+	float  (float32):     8       23      + 1 = 32
+	double (float64):    11       52      + 1 = 64
+*/
+uint64_t StringUtils::stof(const char* str, const char* str_end, uint8_t exponent_bits, uint8_t fraction_bits, bool atof_compatible) {
 	if (str_end == NULL)
 		str_end = str + strlen(str);
 
-
-	const uint64_t exponentBias = (1 << exponentBits) / 2 - 1;
-
+	const uint64_t exponent_bias = (1 << exponent_bits) / 2 - 1;
 
 	const char* str_stripped = str;
 	const char* str_end_stripped = str_end;
 
-	uint64_t sign = 0, exponent = exponentBias, fraction = 0;
-	
+	uint64_t sign = 0, exponent = exponent_bias, fraction = 0;
 
-	while (isspace(*str_stripped))
+	while (isspace((int)*str_stripped))
 		str_stripped++;
 
-	if (str_stripped >= str_end) { // return NaN if string is just empty (or just whitespace)
-		if (atof_compatible) {
+	if (str_stripped >= str_end) { // return NaN/0 if string is just empty (or just whitespace)
+		if (atof_compatible)
 			goto stof_zero;
-		}
-		else {
+		else
 			goto stof_nan;
-		}
-	}
+	} 
 		
 
-	while (str_end_stripped > str_stripped && isspace(*(str_end_stripped-1)))
+	while (str_end_stripped > str_stripped && isspace((int)*(str_end_stripped-1)))
 		str_end_stripped--;
 
-	// maybe check something here??
-
-	if (!atof_compatible && strcasecmp(str_stripped, "inf", str_end_stripped) == 0) {
+	if (!atof_compatible && strcasecmp(str_stripped, "inf", str_end_stripped, 0) == 0) {
 		goto stof_inf;
 	}
 
-	if (!atof_compatible && strcasecmp(str_stripped, "nan", str_end_stripped) == 0) {
+	if (!atof_compatible && strcasecmp(str_stripped, "nan", str_end_stripped, 0) == 0) {
 		goto stof_nan;
 	}
 
@@ -255,8 +253,8 @@ uint64_t StringUtils::stof(const char* str, const char* str_end, uint8_t exponen
 		}
 
 		uint64_t digits = 0, decimals = 0;
-		int exponentDec = 0;
-		size_t decimalsSeqLen = 0;
+		int exponent_dec = 0;
+		size_t decimals_seq_len = 0;
 
 		// extract digits
 		{
@@ -268,7 +266,7 @@ uint64_t StringUtils::stof(const char* str, const char* str_end, uint8_t exponen
 					break;
 				}
 
-				if (!isdigit(*digitSeqEnd))
+				if (!isdigit((int)*digitSeqEnd))
 					break;
 
 				digitSeqEnd++;
@@ -280,15 +278,14 @@ uint64_t StringUtils::stof(const char* str, const char* str_end, uint8_t exponen
 				for (size_t i = 0; i < digitSeqLen; i++) {
 					uint64_t n_ = n * 10;
 
-					if (n_ / 10 != n) { // overflow
-						// TODO: round
-						exponentDec += (int)digitSeqLen - (int)i;
-						goto stof_digits_done;
+					if (n_ / 10 != n || n_ + (str_w[i] - '0') < n_) { // overflow
+						// rounding should not be necessary, because the greatest precision we can have is 63 bit
+						exponent_dec += (int)digitSeqLen - (int)i;
+						break;
 					}
-					
+
 					n = n_ + (str_w[i] - '0');
 				}
-stof_digits_done:
 				digits = n;
 			}
 			str_w = digitSeqEnd;
@@ -305,40 +302,38 @@ stof_digits_done:
 
 			bool skip = false;
 
-			const char* decimalsSeqEnd = str_w;
+			const char* decimals_seq_end = str_w;
 			while (true) {
-				if (decimalsSeqEnd >= str_end_stripped) { // check if at end of string
+				if (decimals_seq_end >= str_end_stripped) { // check if at end of string
 					skip = true;
 					break;
 				}
 
-				if (!isdigit(*decimalsSeqEnd))
+				if (!isdigit((int)*decimals_seq_end))
 					break;
 
-				decimalsSeqEnd++;
+				decimals_seq_end++;
 			}
 
-
-			decimalsSeqLen = decimalsSeqEnd - str_w;
-			if (decimalsSeqLen > 0) {
+			decimals_seq_len = decimals_seq_end - str_w;
+			if (decimals_seq_len > 0) {
 				uint64_t n = 0;
-				for (size_t i = 0; i < decimalsSeqLen; i++) {
+				for (size_t i = 0; i < decimals_seq_len; i++) {
 					uint64_t n_ = n * 10;
 
 					if (n_*10 / 100 != n) { // check for overflow in the next round
 						if (str_w[i] - '0' >= 5)
 							n++; // round
-						decimalsSeqLen = i;
-						goto stof_decimals_done;
+						decimals_seq_len = i;
+						break;
 					}
 
 					n = n_ + (str_w[i] - '0');
 				}
-stof_decimals_done:
 				decimals = n;
 			}
 
-			str_w = decimalsSeqEnd;
+			str_w = decimals_seq_end;
 
 			if(skip)
 				goto stof_calc;
@@ -353,37 +348,37 @@ stof_decimals_done:
 			if (str_w >= str_end_stripped) // illegal
 				goto stof_nan;
 
-			bool expIsNeg = false;
+			bool exp_is_neg = false;
 
 			if (*str_w == '+') {
-				expIsNeg = false;
+				exp_is_neg = false;
 				str_w++;
 			}
 			else if (*str_w == '-') {
-				expIsNeg = true;
+				exp_is_neg = true;
 				str_w++;
 			}
 
-			const char* exponentSeqEnd = str_w;
+			const char* exponent_seq_end = str_w;
 			while (true) {
-				if (exponentSeqEnd >= str_end_stripped) // check if at end of string
+				if (exponent_seq_end >= str_end_stripped) // check if at end of string
 					break;
 
-				if (!isdigit(*exponentSeqEnd))
+				if (!isdigit((int)*exponent_seq_end))
 					break;
 
-				exponentSeqEnd++;
+				exponent_seq_end++;
 			}
 
-			if (exponentSeqEnd > str_w) {
+			if (exponent_seq_end > str_w) {
 				int expOff = 0;
-				for (const char* s = str_w; s < exponentSeqEnd; s++) { // convert dec string to int
+				for (const char* s = str_w; s < exponent_seq_end; s++) { // convert dec string to int
 					expOff = expOff * 10 + (*s - '0');
 				}
-				exponentDec += expIsNeg ? -expOff : expOff;
+				exponent_dec += exp_is_neg ? -expOff : expOff;
 			}
 
-			str_w = exponentSeqEnd;
+			str_w = exponent_seq_end;
 		}
 
 
@@ -392,75 +387,76 @@ stof_decimals_done:
 				str_w++;
 		}
 
-		if (!atof_compatible && str_w != str_end_w) // check if there is still something left in the string (illegal, if not atof_compadible)
+		if (!atof_compatible && str_w != str_end_w) // check if there is still something left in the string (illegal, if not atof_compatible)
 			goto stof_nan;
 
 stof_calc:
 		{
 			int exp = 0;
 
-			uint8_t digitsHBS = getHBS(digits);
+			uint8_t digits_HBS = 0;
+			{ // get the highest bit set
+				uint64_t x = digits;
+				while (x >>= 1) digits_HBS++;
+			}
 
 
-			uint64_t decimalsBin = 0; // binary representation of fraction, but left aligned (msb set = 0.5)
-			uint8_t decimalsBinInd = 0; // basically the length
+			uint64_t decimals_bin = 0; // binary representation of fraction, but left aligned (msb set = 0.5)
+			uint8_t decimals_bin_ind = 0; // basically the length
 			if (decimals != 0) {
 				if (digits == 0) {
 					digits = decimals;
 					decimals = 0;
-					exponentDec -= (int)decimalsSeqLen;
+					exponent_dec -= (int)decimals_seq_len;
 				}
 				else {
-					if(digitsHBS < fractionBits) {
+					if(digits_HBS < fraction_bits) {
 						uint64_t decimals_cpy = decimals;
 						uint8_t decimalsBinIndFirst1 = -1;
 
-						uint64_t decimalsUpperBound = 1;
-						for (size_t i = 0; i < decimalsSeqLen; i++) {
-							uint64_t n = decimalsUpperBound * 10;
-							if (n / 10 != decimalsUpperBound) {
+						uint64_t decimals_upper_bound = 1;
+						for (size_t i = 0; i < decimals_seq_len; i++) {
+							uint64_t n = decimals_upper_bound * 10;
+							if (n / 10 != decimals_upper_bound) {
 								goto stof_zero;
 							}
-							decimalsUpperBound = n;
+							decimals_upper_bound = n;
 						}
 
 						while (decimals_cpy > 0) {
 							decimals_cpy <<= 1;
-							if (decimals_cpy >= decimalsUpperBound) {
-								decimals_cpy -= decimalsUpperBound;
-								decimalsBin |= (uint64_t)1 << (64 - decimalsBinInd - 1);
+							if (decimals_cpy >= decimals_upper_bound) {
+								decimals_cpy -= decimals_upper_bound;
+								decimals_bin |= (uint64_t)1 << (64 - decimals_bin_ind - 1);
 
 								if (decimalsBinIndFirst1 == (uint8_t)-1)
-									decimalsBinIndFirst1 = decimalsBinInd;
+									decimalsBinIndFirst1 = decimals_bin_ind;
 							}
-							decimalsBinInd++;
+							decimals_bin_ind++;
 
-							if (decimalsBinIndFirst1 != (uint8_t)-1 && decimalsBinInd - decimalsBinIndFirst1 > fractionBits - digitsHBS + 1) // check if enough bits were read
+							if (decimalsBinIndFirst1 != (uint8_t)-1 && decimals_bin_ind - decimalsBinIndFirst1 > fraction_bits - digits_HBS + 1) // check if enough bits were read
 								break;
 						}
 					}
 				}
 			}
 			
-			
-			//exp += digitsHBS;
-			exp -= decimalsBinInd;
+			exp -= decimals_bin_ind;
 
-			uint64_t combined = (digits << decimalsBinInd) | (decimalsBin >> (64-decimalsBinInd)); // right aligned (normal)
+			uint64_t combined = (digits << decimals_bin_ind) | (decimals_bin >> (64-decimals_bin_ind)); // right aligned (normal)
 
 			if (combined == 0)
 				goto stof_zero;
-			else if (exponentDec != 0) {
+			else if (exponent_dec != 0) {
 				while (!(combined & 1)) {
 					combined >>= 1;
 					exp++;
 				}
 
-				exp += exponentDec; // get the prime factor 2 out of the base 10
-				
+				exp += exponent_dec; // get the prime factor 2 out of the base 10
 
-				if (exponentDec > 0) {
-					for (int i = 0; i < exponentDec; i++) {
+				if (exponent_dec > 0) {
+					for (int i = 0; i < exponent_dec; i++) {
 						uint64_t n;
 						while (true) {
 							n = combined * 5;
@@ -479,11 +475,12 @@ stof_calc:
 					}
 				}
 				else {
+					// we left align the current mantissa to get maximum precision when dividing
 					while (!(combined & ((uint64_t)1 << 63))) { // left align
 						combined <<= 1;
 						exp--;
 					}
-					for (int i = 0; i < -exponentDec; i++) {
+					for (int i = 0; i < -exponent_dec; i++) {
 						combined /= 5;
 						while (!(combined & ((uint64_t)1 << 63))) {
 							combined <<= 1;
@@ -498,46 +495,69 @@ stof_calc:
 			}
 
 			{
-				uint8_t comb_hbs = getHBS(combined);
+				uint8_t comb_HBS = 0;
+				{ // get the highest bit set
+					uint64_t x = combined;
+					while (x >>= 1) comb_HBS++;
+				}
 
-				exp += comb_hbs;
+				exp += comb_HBS;
 
+				uint8_t shift_off_special = 0;
+				if((int64_t)exponent_bias + exp <= 0) { // special case: for effective exponent == 0 we need to shift one less
+					shift_off_special = 1;
+				}
 
 				uint64_t comb_fraction = combined;
-				if (comb_hbs <= fractionBits) { // shift to fit into fraction of set bitlength
-					comb_fraction <<= fractionBits - comb_hbs;
+				if ((comb_HBS+shift_off_special) <= fraction_bits) { // shift to fit into fraction of set bitlength
+					comb_fraction <<= fraction_bits - comb_HBS - shift_off_special;
 				}
 				else {
-					uint8_t shft_amt = comb_hbs - fractionBits;
-					comb_fraction >>= shft_amt - 1; // shift right by one less
+					uint8_t shft_amt = comb_HBS - fraction_bits;
+					comb_fraction >>= shft_amt - 1 + shift_off_special; // shift right by one less
 
-					uint8_t roundUp = comb_fraction & 1; // get last bit for rounding
+					uint8_t round_up = comb_fraction & 1; // get last bit for rounding
 					comb_fraction >>= 1; // shift right by the remaining 1
-					comb_fraction += roundUp; // TODO: check for overflow maybe?
+					// now comb_fraction should be < (1<<fraction_bits)
+					comb_fraction += round_up;
+					
+					if(comb_fraction > (((uint64_t)1<<(fraction_bits+1))-1)){ // check if rounding caused overflow
+						comb_fraction >>= 1;
+						exp++;
+					}
 				}
 
-				fraction = comb_fraction & (((uint64_t)1<<fractionBits)-1); // shear off the highest bit set, since thats always set (by the standard)
+				fraction = comb_fraction;
+				if(!shift_off_special)
+					fraction &= (((uint64_t)1<<fraction_bits)-1); // shear off the highest bit set, since thats always set (by the standard)
 			}
 			
 
-			if ((int64_t)exponentBias + exp < 0) // exponent too small
-				goto stof_zero;
-			else if (exponentBias + exp >= ((uint64_t)1 << exponentBits)) // exponent too big
+			if ((int64_t)exponent_bias + exp < 0){ // exponent too small (for regular use) => we enter special exponent=0 case
+				exponent = 0;
+
+				uint8_t shft_amt = -((int64_t)exponent_bias + exp); // garanteed to be > 0
+
+				uint8_t round_up = (fraction&(1<<(shft_amt-1)))!=0;
+				fraction >>= shft_amt;
+				fraction += round_up; // round up cant cause overflow
+			} else if (exponent_bias + exp >= ((uint64_t)1 << exponent_bits)){ // exponent too big
 				goto stof_inf;
-			else
-				exponent = exponentBias + exp;
+			} else {
+				exponent = exponent_bias + exp;
+			}
 			
 			goto stof_end;
 		}
 	}
 
 stof_inf:
-	exponent = (1 << exponentBits) - 1; // all bits set
+	exponent = (1 << exponent_bits) - 1; // all bits set
 	fraction = 0;
 	goto stof_end;
 
 stof_nan:
-	exponent = (1 << exponentBits) - 1; // all bits set
+	exponent = (1 << exponent_bits) - 1; // all bits set
 	fraction = 1;
 	goto stof_end;
 
@@ -547,7 +567,7 @@ stof_zero:
 	goto stof_end;
 
 stof_end:
-	return (sign << (exponentBits + fractionBits)) | (exponent << fractionBits) | fraction;
+	return (sign << (exponent_bits + fraction_bits)) | (exponent << fraction_bits) | fraction;
 }
 
 uint8_t StringUtils::getLBS(uint64_t x) {
@@ -658,473 +678,3 @@ std::string StringUtils::addThousandsSeperator(const char* str, const char* str_
 
 	return out;
 }
-
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-uint64_t StringUtils::stof(const char* str, const char* str_end, uint8_t exponentBits, uint8_t fractionBits) {
-if (str_end == NULL)
-str_end = str + strlen(str);
-
-
-const uint64_t exponentBias = (1 << exponentBits) / 2 - 1;
-
-
-const char* str_stripped = str;
-const char* str_end_stripped = str_end;
-
-uint64_t sign = 0, exponent = exponentBias, fraction = 0;
-
-while (isspace(*str_stripped))
-str_stripped++;
-
-if (str_stripped >= str_end) // return NaN if string is just empty (or just whitespace)
-goto stof_nan;
-
-while (str_end_stripped < str_stripped && isspace(*str_end_stripped))
-str_end_stripped--;
-
-// maybe check something here??
-
-if (strcasecmp(str_stripped, "inf", str_end_stripped) == 0) {
-goto stof_inf;
-}
-
-if (strcasecmp(str_stripped, "nan", str_end_stripped) == 0) {
-goto stof_nan;
-}
-
-{
-const char* str_w = str_stripped;
-const char* str_end_w = str_end_stripped;
-
-if (*str_w == '+') {
-sign = 0;
-str_w++;
-}
-if (*str_w == '-') {
-sign = 1;
-str_w++;
-}
-
-uint64_t digits = 0, decimals = 0;
-int exponentDec = 0;
-size_t decimalsSeqLen = 0;
-int exp = 1;
-
-// extract digits
-{
-const char* digitSeqEnd = str_stripped;
-while (true) {
-if (digitSeqEnd >= str_end_stripped) {
-digits = numBaseStrToUIntT<10>(str_stripped, digitSeqEnd);
-goto stof_calc;
-}
-
-if (!isdigit(*digitSeqEnd))
-break;
-
-digitSeqEnd++;
-}
-
-digits = numBaseStrToUIntT<10>(str_stripped, digitSeqEnd);
-str_w = digitSeqEnd;
-}
-
-// at this point str_w is guaranteed to be < str_end_stripped
-
-// extract decimals
-if (*str_w == '.') {
-str_w++;
-
-const char* decimalsSeqEnd = str_w;
-while (true) {
-if (decimalsSeqEnd >= str_end_stripped) {
-if (decimalsSeqEnd > str_w) {
-decimals = numBaseStrToUIntT<10>(str_w, decimalsSeqEnd);
-decimalsSeqLen = decimalsSeqEnd - str_w;
-}
-
-goto stof_calc;
-}
-
-if (!isdigit(*decimalsSeqEnd))
-break;
-
-decimalsSeqEnd++;
-}
-
-if (decimalsSeqEnd > str_w) {
-decimals = numBaseStrToUIntT<10>(str_w, decimalsSeqEnd);
-decimalsSeqLen = decimalsSeqEnd - str_w;
-}
-
-str_w = decimalsSeqEnd;
-}
-
-// at this point str_w is guaranteed to be < str_end_stripped
-
-// extract exponent
-if (*str_w == 'e' || *str_w == 'E') {
-str_w++;
-
-if (str_w >= str_end_stripped) // illegal
-goto stof_nan;
-
-bool expIsNeg = false;
-
-if (*str_w == '+') {
-expIsNeg = false;
-str_w++;
-}
-else if (*str_w == '-') {
-expIsNeg = true;
-str_w++;
-}
-
-const char* exponentSeqEnd = str_w;
-while (true) {
-if (exponentSeqEnd >= str_end_stripped)
-break;
-
-if (!isdigit(*exponentSeqEnd))
-break;
-
-exponentSeqEnd++;
-}
-
-if (exponentSeqEnd > str_w) {
-exponentDec = numBaseStrToUIntT<10>(str_w, exponentSeqEnd);
-if (expIsNeg)
-exponentDec = -exponentDec;
-}
-
-str_w = exponentSeqEnd;
-}
-
-
-if (str_w < str_end_w) {
-if (*str_w == 'f' || *str_w == 'F')
-str_w++;
-}
-
-if (str_w != str_end_w) // illegal
-goto stof_nan;
-
-stof_calc:
-{
-
-int exp = 0;
-
-uint8_t digitsHBS = getHBS(digits);
-
-
-uint64_t decimalsBin = 0; // binary representation of fraction, but left aligned (msb = 0.5)
-uint8_t decimalsBinInd = 0; // basically the length
-{
-uint64_t decimals_cpy = decimals;
-
-uint64_t decimalsUpperBound = pow(10, decimalsSeqLen);
-while (decimalsBinInd <= fractionBits - digitsHBS && decimals_cpy > 0) {
-decimals_cpy <<= 1;
-if (decimals_cpy >= decimalsUpperBound) {
-decimals_cpy -= decimalsUpperBound;
-decimalsBin |= (uint64_t)1 << (64 - decimalsBinInd - 1);
-}
-
-decimalsBinInd++;
-}
-}
-
-
-//exp += digitsHBS;
-exp -= decimalsBinInd;
-
-
-uint64_t combined = (digits << decimalsBinInd) | (decimalsBin >> (64-decimalsBinInd)); // right aligned (normal)
-while (!(combined & 1)) {
-combined >>= 1;
-exp++;
-}
-
-if (combined == 0)
-exponent = 0;
-else if (exponentDec != 0) {
-exp += exponentDec; // get the prime factor 2 out of the base 10
-
-
-if (exponentDec > 0) {
-for (int i = 0; i < exponentDec; i++) {
-uint64_t n;
-while (true) {
-n = combined * 5;
-if (n / 5 != combined) { // overflow detected
-combined >>= 1;
-exp++;
-continue;
-}
-break;
-}
-combined = n;
-}
-while (!(combined & 1)) {
-combined >>= 1;
-exp++;
-}
-}
-else {
-while (!(combined & ((uint64_t)1 << 63))) { // left align
-combined <<= 1;
-exp--;
-}
-for (int i = 0; i < -exponentDec; i++) {
-combined /= 5;
-while (!(combined & ((uint64_t)1 << 63))) {
-combined <<= 1;
-exp--;
-}
-}
-while (!(combined & 1)) { // right align again
-combined >>= 1;
-exp++;
-}
-}
-}
-
-uint8_t comb_hbs = getHBS(combined);
-
-exp += comb_hbs;
-
-
-uint64_t comb_fraction = combined;
-if (comb_hbs <= fractionBits) { // shift to fit into fraction of set bitlength
-comb_fraction <<= fractionBits - comb_hbs;
-}
-else {
-uint8_t shft_amt = comb_hbs - fractionBits;
-comb_fraction >>= shft_amt - 1; // shift right by one less
-
-uint8_t roundUp = comb_fraction & 1; // get last bit for rounding
-comb_fraction >>= 1; // shift right by the remaining 1
-comb_fraction += roundUp;
-}
-
-fraction = comb_fraction & (1<<fractionBits)-1; // shear off the highest bit set, since thats always set (by the standard)
-
-if (exponent != 0)
-if (exponentBias + exp >= 0 && exponentBias + exp < ((uint64_t)1 << exponentBits))
-exponent = exponentBias + exp;
-else
-goto stof_inf;
-
-
-goto stof_end;
-}
-}
-
-stof_inf:
-exponent = (1 << exponentBits) - 1; // all bits set
-fraction = 0;
-goto stof_end;
-
-stof_nan:
-exponent = (1 << exponentBits) - 1; // all bits set
-fraction = 1;
-goto stof_end;
-
-stof_end:
-return (sign << (exponentBits + fractionBits)) | (exponent << fractionBits) | fraction;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-fraction = (combined << (comb_hbs <= fractionBits ? fractionBits - getHBS(combined) : 0)) & (1<<fractionBits)-1; // shear off the highest bit set, since thats always set (by the standard)
-
-
-
-if (combined << exp != 1) {
-if (combined << exp == 0) {
-while (combined << exp != 1) {
-exp++;
-}
-}
-else {
-while (combined << exp != 1) {
-exp--;
-}
-}
-}
-
-
-
-fraction = (combined >> (64 - fractionBits - 1)) & (1<<fractionBits)-1; // -1 to shear off the highest bit set, since thats always set (by the standard)
-
-
-
-
-uint8_t decimalsHBS = getHBS(decimalsBin);
-decimalsHBS = 64 - decimalsHBS - 1;
-
-if (digits > 0) {
-exp += digitsHBS;
-exp -= getLBS()
-}
-else {
-exp -= decimalsHBS + 1;
-}
-
-
-
-
-
-
-
-uint8_t decimalsHBS = getHBS(decimalsBin);
-decimalsHBS = 64 - decimalsHBS - 1;
-
-uint64_t combinedLen;
-if (digitsHBS > 0) {
-exponent += digitsHBS;
-combinedLen = decimalsBinInd + digitsHBS - 1;
-}
-else {
-exponent -= decimalsHBS + 1;
-combinedLen = decimalsHBS - 1;
-}
-uint64_t combined = (digits << decimalsBinInd) | (decimalsBin >> (64-decimalsBinInd-1)); // right aligned (normal)
-
-
-
-
-
-
-
-else {
-bool expIsNeg = false;
-if (exponentDec < 0) {
-exponentDec = -exponentDec;
-expIsNeg = true;
-}
-
-uint64_t exponentDecMul = pow(10, exponentDec);
-
-while ((exponentDecMul & 1) == 0) {
-exponentDecMul >>= 1;
-exponent++;
-}
-
-if (expIsNeg) {
-uint8_t hbs = getHBS(exponentDecMul);
-uint64_t nextPow2 = hbs + 1;
-fraction = ((fraction << nextPow2) / exponentDecMul)>>nextPow2;
-
-exponent = exponentBias - exponent;
-}	
-else {
-combined *= exponentDecMul;
-exponent += exponentBias;
-}
-
-combinedLen = getHBS(combined);
-}
-
-
-
-
-
-
-
-
-
-uint64_t StringUtils::hexToUInt(const char* str, const char* strEnd){
-if (strEnd == nullptr)
-strEnd = str + std::strlen(str);
-
-uint64_t num = 0;
-const char* strPtr = str;
-while (strPtr != strEnd) {
-const char c = *strPtr++;
-uint8_t cNum = -1;
-if (c >= '0' && c <= '9')
-cNum = c - '0';
-else {
-if (c >= 'A' && c <= 'F')
-cNum = c - 'A' + 10;
-else if (c >= 'a' && c <= 'f')
-cNum = c - 'a' + 10;
-else
-return -1;
-}
-num <<= 4;
-num |= cNum;
-}
-return num;
-}
-
-
-std::string stringExtras::intToBin(uint16_t val, uint8_t digits) {
-std::string out = "";
-for (uint8_t i = 0; i < digits; i++) {
-out = hexDigits[val & 0b1] + out;
-val >>= 1;
-}
-return out;
-}
-std::string stringExtras::intToHex(uint16_t val, uint8_t digits) {
-std::string out = "";
-for (uint8_t i = 0; i < digits; i++) {
-out = hexDigits[val & 0xF] + out;
-val >>= 4;
-}
-return out;
-}
-
-uint8_t stringExtras::HexDigitToInt(char digit) {
-if(digit >= 'a' && digit <= 'z') {
-digit -= ('a'-'A');
-}
-for (uint8_t ind = 0; ind < 16; ind++) {
-if (digit == hexDigits[ind]) {
-return ind;
-}
-}
-if(digit == ' ')
-return 0;
-return 255;
-}
-
-uint32_t stringExtras::HexStrToInt(const char * str) {
-size_t len = std::strlen(str);
-uint32_t out = 0;
-for (size_t i = 0; i < len; i++) {
-out <<= 4;
-out |= HexDigitToInt(*(str + i));
-}
-return out;
-}
-
-*/
