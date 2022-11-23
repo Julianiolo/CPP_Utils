@@ -160,7 +160,7 @@ namespace StringUtils {
 
 
 	// this function ignores any f/l suffixes, as the size of the float is explicitly stated through the bits
-	uint64_t stof(const char* str, const char* str_end, uint8_t exponentBits = 8, uint8_t fractionBits = 23, bool atof_compadible = false);
+	uint64_t stof(const char* str, const char* str_end, uint8_t exponent_bits = 8, uint8_t fraction_bits = 23, bool atof_compadible = false);
 
 	uint8_t getLBS(uint64_t x);
 	uint8_t getHBS(uint64_t x);

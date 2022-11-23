@@ -21,10 +21,12 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\DataUtils.cpp" />
     <ClCompile Include="..\..\..\src\StringUtils.cpp" />
+    <ClCompile Include="..\..\..\src\SystemUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\DataUtils.h" />
     <ClInclude Include="..\..\..\src\StringUtils.h" />
+    <ClInclude Include="..\..\..\src\SystemUtils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

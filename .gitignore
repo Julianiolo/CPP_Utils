@@ -3,10 +3,11 @@
 build/*
 dependencies/build/*
 
-projects/VS2019/template/.vs/*
-projects/VS2019/template/build/*
+projects/VS2019/CPP_UTILS/.vs/*
+projects/VS2019/CPP_UTILS/build/*
 
 test/*
+old/
 
 *.vcxproj.user
 

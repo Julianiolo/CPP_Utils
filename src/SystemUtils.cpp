@@ -2,6 +2,11 @@
 
 #include <functional>
 
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
+
 SystemUtils::CallProcThread::CallProcThread(const std::string& cmd) : cmd(cmd), f(nullptr) {
 
 }
@@ -19,7 +24,7 @@ bool SystemUtils::CallProcThread::start() {
     if(!f)
         return false;
 
-    thread = std::thread(std::bind(update, this));
+    thread = std::thread(std::bind(&SystemUtils::CallProcThread::update, this));
 
     return true;
 }
