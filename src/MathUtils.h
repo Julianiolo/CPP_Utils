@@ -1,6 +1,7 @@
 #ifndef __MATHUTILS_H__
 #define __MATHUTILS_H__
 
+
 namespace MathUtils {
 	template<typename T>
 	T clamp(const T& val, const T& min, const T& max) {
