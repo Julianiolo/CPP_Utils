@@ -171,6 +171,11 @@ int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, con
 	
 	while (true) {
 		if (a == a_end || b == b_end) {
+			if(a_end == 0 && *a == 0)
+				a_end = a;
+			if(b_end == 0 && *b == 0)
+				b_end = b;
+
 			if (a == a_end && b == b_end)
 				return 0;
 
@@ -231,13 +236,19 @@ uint64_t StringUtils::stof(const char* str, const char* str_end, uint8_t exponen
 	while (str_end_stripped > str_stripped && isspace((int)*(str_end_stripped-1)))
 		str_end_stripped--;
 
-	if (!atof_compatible && strcasecmp(str_stripped, "inf", str_end_stripped, 0) == 0) {
-		goto stof_inf;
+	if(str_end_stripped-str_stripped >= 3){
+		const char* check_end = atof_compatible ? str_stripped+3 : str_end_stripped; // if atof_compatible we only check first 3 characters, else everything
+
+		if (strcasecmp(str_stripped, "inf", check_end, 0) == 0 || strcasecmp(str_stripped, "infinity", str_end_stripped, 0) == 0) {
+			goto stof_inf;
+		}
+
+		if (strcasecmp(str_stripped, "nan", check_end, 0) == 0) {
+			goto stof_nan;
+		}
 	}
 
-	if (!atof_compatible && strcasecmp(str_stripped, "nan", str_end_stripped, 0) == 0) {
-		goto stof_nan;
-	}
+	
 
 	{
 		const char* str_w = str_stripped;
@@ -448,7 +459,7 @@ stof_calc:
 			if (combined == 0)
 				goto stof_zero;
 			else if (exponent_dec != 0) {
-				while (!(combined & 1)) {
+				while (combined && !(combined & 1)) {
 					combined >>= 1;
 					exp++;
 				}
@@ -469,25 +480,60 @@ stof_calc:
 						}
 						combined = n;
 					}
-					while (!(combined & 1)) {
+					while (combined && !(combined & 1)) {
 						combined >>= 1;
 						exp++;
 					}
 				}
 				else {
 					// we left align the current mantissa to get maximum precision when dividing
-					while (!(combined & ((uint64_t)1 << 63))) { // left align
+					while (combined && !(combined & ((uint64_t)1 << 63))) { // left align
 						combined <<= 1;
 						exp--;
 					}
-					for (int i = 0; i < -exponent_dec; i++) {
-						combined /= 5;
-						while (!(combined & ((uint64_t)1 << 63))) {
-							combined <<= 1;
-							exp--;
+					int cnt = -exponent_dec;
+					while(cnt>0){
+
+						// we are dividing in big steps to improve precision
+						uint64_t div_by;
+						if(cnt < 27){
+							div_by = 1;
+							for(int i = 0; i < cnt; i++){
+								div_by *= 5;
+							}
+							cnt = 0;
+						}else{
+							div_by = 7450580596923828125ull; // =5^27
+							cnt -= 27;
 						}
+
+						uint64_t n = combined / div_by;
+						uint64_t residual = combined % div_by;
+
+						uint8_t amt_free_digits_n = 0;
+						if(n == 0){
+							amt_free_digits_n = 64;
+						}else{
+							while(!(n & ((uint64_t)1 << 63))){
+								n <<= 1;
+								amt_free_digits_n++;
+							}
+						}
+
+						combined = n;
+
+						const uint8_t bitoff = amt_free_digits_n-1;
+						for(uint8_t i = 0; i<amt_free_digits_n && residual > 0; i++) {
+							residual <<= 1;
+							if(residual >= div_by){
+								residual -= div_by;
+								combined |= (uint64_t)1<<(bitoff-i);
+							}
+						}
+
+						exp -= amt_free_digits_n;
 					}
-					while (!(combined & 1)) { // right align again
+					while (combined && !(combined & 1)) { // right align again
 						combined >>= 1;
 						exp++;
 					}
@@ -536,11 +582,17 @@ stof_calc:
 			if ((int64_t)exponent_bias + exp < 0){ // exponent too small (for regular use) => we enter special exponent=0 case
 				exponent = 0;
 
-				uint8_t shft_amt = -((int64_t)exponent_bias + exp); // garanteed to be > 0
+				if((int64_t)exponent_bias + exp < -fraction_bits) {
+					goto stof_zero;
+				}else{
+					uint8_t shft_amt = -((int64_t)exponent_bias + exp); // garanteed to be > 0
 
-				uint8_t round_up = (fraction&(1<<(shft_amt-1)))!=0;
-				fraction >>= shft_amt;
-				fraction += round_up; // round up cant cause overflow
+					uint8_t round_up = (fraction&(1<<(shft_amt-1)))!=0;
+					fraction >>= shft_amt;
+					fraction += round_up; // round up cant cause overflow
+				}
+
+				
 			} else if (exponent_bias + exp >= ((uint64_t)1 << exponent_bits)){ // exponent too big
 				goto stof_inf;
 			} else {
@@ -552,13 +604,13 @@ stof_calc:
 	}
 
 stof_inf:
-	exponent = (1 << exponent_bits) - 1; // all bits set
+	exponent = ((uint64_t)1 << exponent_bits) - 1; // all bits set
 	fraction = 0;
 	goto stof_end;
 
 stof_nan:
-	exponent = (1 << exponent_bits) - 1; // all bits set
-	fraction = 1;
+	exponent = ((uint64_t)1 << exponent_bits) - 1; // all bits set
+	fraction = (uint64_t)1 << (fraction_bits-1);
 	goto stof_end;
 
 stof_zero:
