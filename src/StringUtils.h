@@ -135,6 +135,8 @@ namespace StringUtils {
 	std::string paddLeft(const std::string& s, int paddedLength, char paddWith);
 	std::string paddRight(const std::string& s, int paddedLength, char paddWith);
 
+	std::pair<const char*, const char*> stripString(const char* str, const char* str_end = 0);
+
 	template<typename ... Args>
 	std::string format(const char* str, Args ... args) { // https://stackoverflow.com/a/26221725
 		int size_i = std::snprintf(NULL, 0, str, args ...) + 1;

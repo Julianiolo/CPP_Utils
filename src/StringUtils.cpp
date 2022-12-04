@@ -62,6 +62,20 @@ std::string StringUtils::paddRight(const std::string& s, int paddedLength, char 
 	return out;
 }
 
+std::pair<const char*, const char*> StringUtils::stripString(const char* str, const char* str_end) {
+	if (str_end == NULL)
+		str_end = str + std::strlen(str);
+
+	char c;
+	while (str < str_end && ((c = *str) == ' ' || c == '\n' || c == '\r' || c == '\t'))
+		str++;
+
+	while (str_end > str+1 && ((c = *(str_end-1)) == ' ' || c == '\n' || c == '\r' || c == '\t'))
+		str_end--;
+
+	return {str,str_end};
+}
+
 std::string StringUtils::loadFileIntoString(const char* path, bool* success) {
 	std::ifstream t(path, std::ios::binary);
 	

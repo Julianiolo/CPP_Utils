@@ -36,6 +36,36 @@ namespace DataUtils {
 		return nullptr;
 	}
 
+	// find value, if not found return where to insert it; compare needs to be a funktion like object with (const T& a, size_t ind_of_b) -> int
+	template<typename T,typename CMP>
+	size_t binarySearchInclusive(size_t len, const T& value, CMP compare) {
+		size_t from = 0;
+		size_t to = len-1;
+		while (from < to) {
+			size_t mid = from + (to-from) / 2;
+
+			int cmp = compare(value, mid);
+
+			if (cmp == 0) {
+				return mid;
+			}
+			else if (cmp < 0) {
+				if (mid == to) {
+					return from;
+				}
+				to = mid;
+			}
+			else {
+				if (mid == from) {
+					return from;
+				}
+				from = mid;
+			}
+		}
+		
+		return from;
+	}
+
 	template<typename RandomIt, typename T>
 	size_t findVal(RandomIt first, RandomIt last, const T& value) {
 		size_t len = std::distance(first, last);
