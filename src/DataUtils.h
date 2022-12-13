@@ -4,6 +4,8 @@
 #include <iterator>
 #include <string>
 
+#define DU_ARRAYSIZE(arr) (sizeof(arr)/sizeof(arr[0]))
+
 namespace DataUtils {
 	template<typename RandomIt,typename T>
 	T* binarySearchExlusive(RandomIt first, RandomIt last, const T& value, int (*compare)(const T& a, const T& b)) {
