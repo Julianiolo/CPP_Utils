@@ -7,6 +7,7 @@
 #include <memory>
 #include <stdexcept>
 #include <cstring>
+#include <functional>
 
 namespace StringUtils {
 	constexpr char hexDigitsLowerCase[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
@@ -130,6 +131,24 @@ namespace StringUtils {
 	void uIntToBinBuf(uint64_t num, uint8_t digits, char* buf);
 	std::string uIntToBinStr(uint64_t num, uint8_t digits);
 
+	template<typename T>
+	std::string vectorToStr(const std::vector<T>& vec) {
+		return vectorToStr(vec, [](const T& val){
+			return std::to_string(val);
+		});
+	}
+
+	template<typename T, typename F>
+	std::string vectorToStr(const std::vector<T>& vec, F toStrFunc) {
+		std::string out = "[";
+		for(size_t i = 0; i<vec.size(); i++) {
+			out += toStrFunc(vec[i]);
+			if(i+1 < vec.size())
+				out += ", ";
+		}
+		out += "]";
+		return out;
+	}
 
 
 	std::string paddLeft(const std::string& s, int paddedLength, char paddWith);
