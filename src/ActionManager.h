@@ -1,0 +1,6 @@
+#ifndef __CPPUTILS_ACTIONMANAGER_H__
+#define __CPPUTILS_ACTIONMANAGER_H__
+
+
+
+#endif
