@@ -5,8 +5,10 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <iterator>
 
 class ActionManager {
+public:
 	struct Action {
 		struct Part {
 			enum {
@@ -35,8 +37,33 @@ class ActionManager {
 
 private:
 	std::map<size_t, Action> actions;
+	std::vector<size_t> keysOrdered;
 	TestCallB testCallB;
 public:
+
+	class Iterator {
+		using iterator_category = std::forward_iterator_tag;
+		using difference_type = std::ptrdiff_t;
+		using value_type = Action;
+		using pointer = value_type*;
+		using reference = value_type&;
+
+	private:
+		ActionManager& am;
+		size_t ind;
+	public:
+
+		Iterator(ActionManager& am, size_t ind);
+
+		reference operator*() const;
+		pointer operator->();
+
+		Iterator& operator++();
+		Iterator operator++(int);
+
+		bool operator== (const Iterator& b);
+		bool operator!= (const Iterator& b); 
+	};
 	
 	Action& addAction(size_t id);
 	Action& getAction(size_t id);
@@ -45,6 +72,8 @@ public:
 	
 	void setTestCallB(const TestCallB& callB);
 	
+	Iterator begin();
+	Iterator end();
 };
 
 #endif

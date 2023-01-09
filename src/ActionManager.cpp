@@ -1,5 +1,33 @@
 #include "ActionManager.h"
 
+// Iterator
+ActionManager::Iterator::Iterator(ActionManager& am, size_t ind) : am(am), ind(ind) {
+
+}
+
+ActionManager::Iterator::reference ActionManager::Iterator::operator*() const { 
+	return am.actions[am.keysOrdered[ind]]; 
+}
+ActionManager::Iterator::pointer ActionManager::Iterator::operator->() { 
+	return &am.actions[am.keysOrdered[ind]]; 
+}
+
+ActionManager::Iterator& ActionManager::Iterator::operator++() { 
+	ind++; return *this; 
+}  
+ActionManager::Iterator ActionManager::Iterator::operator++(int) { 
+	Iterator tmp = *this; 
+	++(*this); 
+	return tmp; 
+}
+
+bool ActionManager::Iterator::operator==(const ActionManager::Iterator& b) { 
+	return &am == &b.am && ind == b.ind; 
+}
+bool ActionManager::Iterator::operator!=(const ActionManager::Iterator& b) { 
+	return !(*this==b); 
+}
+
 void ActionManager::Action::addKey(int id) {
 	parts.push_back({ Part::Type_Key, id });
 }
@@ -8,6 +36,7 @@ void ActionManager::Action::addMouseButton(int id) {
 }
 
 ActionManager::Action& ActionManager::addAction(size_t id) {
+	keysOrdered.push_back(id);
 	return actions[id] = Action();
 }
 ActionManager::Action& ActionManager::getAction(size_t id) {
@@ -38,3 +67,4 @@ bool ActionManager::isActionActive(size_t id, ActivationState activationState) {
 void ActionManager::setTestCallB(const TestCallB& callB) {
 	testCallB = callB;
 }
+
