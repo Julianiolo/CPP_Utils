@@ -28,23 +28,37 @@ bool ActionManager::Iterator::operator!=(const ActionManager::Iterator& b) {
 	return !(*this==b); 
 }
 
-void ActionManager::Action::addKey(int id) {
+// Action
+
+void ActionManager::Action::clear() {
+	parts.clear();
+}
+
+ActionManager::Action& ActionManager::Action::addKey(int id) {
 	parts.push_back({ Part::Type_Key, id });
+	return *this;
 }
-void ActionManager::Action::addMouseButton(int id) {
+ActionManager::Action& ActionManager::Action::addMouseButton(int id) {
 	parts.push_back({ Part::Type_MouseButton, id });
+	return *this;
 }
+
+// ActionManager
 
 ActionManager::Action& ActionManager::addAction(size_t id) {
 	keysOrdered.push_back(id);
-	return actions[id] = Action();
+	actions[id] = Action();
+	return actions[id];
 }
 ActionManager::Action& ActionManager::getAction(size_t id) {
-	return actions[id];
+	return actions.at(id);
 }
 
 bool ActionManager::isActionActive(size_t id, ActivationState activationState) {
 	const Action& action = getAction(id);
+
+	if(action.parts.size() == 0)
+		abort();
 
 	ActivationState testState = (activationState == ActivationState_Down || activationState == ActivationState_Pressed) ? ActivationState_Down : ActivationState_Up;
 	for (size_t i = 0; i < action.parts.size(); i++) {
@@ -68,3 +82,9 @@ void ActionManager::setTestCallB(const TestCallB& callB) {
 	testCallB = callB;
 }
 
+ActionManager::Iterator ActionManager::begin(){
+	return Iterator(*this, 0);
+}
+ActionManager::Iterator ActionManager::end(){
+	return Iterator(*this, actions.size());
+}

@@ -21,8 +21,10 @@ public:
 
 		std::vector<Part> parts;
 
-		void addKey(int id);
-		void addMouseButton(int id);
+		void clear();
+
+		Action& addKey(int id);
+		Action& addMouseButton(int id);
 	};
 
 	enum {
