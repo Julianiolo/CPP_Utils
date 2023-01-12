@@ -6,6 +6,7 @@
 #include <map>
 #include <functional>
 #include <iterator>
+#include <string>
 
 class ActionManager {
 public:
@@ -17,14 +18,25 @@ public:
 			};
 			uint8_t type;
 			int id;
-		};
 
+			bool operator==(const Part& other);
+		};
+		
+		std::string title;
+		size_t id;
 		std::vector<Part> parts;
+		std::vector<Part> defParts;
+
+		Action();
+		Action(const char* title);
 
 		void clear();
 
 		Action& addKey(int id);
 		Action& addMouseButton(int id);
+
+		void setAsDefault();
+		void resetToDefault();
 	};
 
 	enum {
@@ -67,7 +79,7 @@ public:
 		bool operator!= (const Iterator& b); 
 	};
 	
-	Action& addAction(size_t id);
+	Action& addAction(const char* title, size_t id);
 	Action& getAction(size_t id);
 
 	bool isActionActive(size_t id, ActivationState activationState);
