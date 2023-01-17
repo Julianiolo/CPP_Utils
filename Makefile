@@ -6,7 +6,7 @@ PLATFORM?=PLATFORM_DESKTOP
 ifeq ($(PLATFORM),PLATFORM_DESKTOP)
     CC?=gcc
     CXX?=g++
-	AR:=ar
+	AR:=gcc-ar
 endif
 ifeq ($(PLATFORM),PLATFORM_WEB)
     CC:=emcc
@@ -16,7 +16,7 @@ endif
 CFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing $(CUSTOM_CFLAGS)
 CXXFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing $(CUSTOM_CXXFLAGS)
 CSTD:=-std=c99
-CXXSTD:=-std=c++17
+CXXSTD_:=-std=gnu++17
 RELEASE_OPTIM?= -O3 -flto
 
 PROJECT_NAME:=CPP_Utils
@@ -85,7 +85,7 @@ $(OUT_PATH): $(DEP_LIBS_BUILD_DIR)$(PROJECT_NAME)_depFile.dep $(OBJ_FILES)
 
 $(OBJ_DIR)%.o:%.cpp
 	mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(CXXSTD) $(DEF_FLAGS) $(DEP_INCLUDE_FLAGS) -c $< -o $@ $(DEP_FLAGS)
+	$(CXX) $(CXXFLAGS) $(CXXSTD_) $(DEF_FLAGS) $(DEP_INCLUDE_FLAGS) -c $< -o $@ $(DEP_FLAGS)
 
 -include $(DEP_FILES)
 
