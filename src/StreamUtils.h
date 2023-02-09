@@ -62,9 +62,9 @@ namespace StreamUtils {
             }
 
             size_t len = std::strlen(s);
-            stream.write(s,len);
+            stream.write(s,len+1);
         }else{
-            abort();
+            static_assert(sizeof(T) == 0, "no behaviour defined for this type");
         }
     }
 
@@ -106,18 +106,20 @@ namespace StreamUtils {
             }else if constexpr(size == 8) {
                 *val = *(double*)&out;
             }else{
-                abort();
+                static_assert(sizeof(T) == 0, "no behaviour defined for this size of float");
             }
         }else if constexpr(std::is_same_v<T,std::string>) {
             std::string s;
             char c;
-            do {
+            while(true) {
                 stream.read(&c,1);
+                if(c == 0)
+                    break;
                 s += c;
-            }while(c!=0);
+            };
             *val = std::move(s);
         }else{
-            abort();
+            static_assert(sizeof(T) == 0, "no behaviour defined for this type");
         }
     }
 }
