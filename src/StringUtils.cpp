@@ -137,27 +137,6 @@ bool StringUtils::writeBytesToFile(const uint8_t* data, size_t dataLen, const ch
 	return true;
 }
 
-
-
-size_t StringUtils::findCharInStr(char c, const char* str, const char* strEnd) {
-	if (strEnd == nullptr)
-		strEnd = str + std::strlen(str);
-	for (const char* ptr = str; ptr < strEnd; ptr++) {
-		if (*ptr == c)
-			return ptr - str;
-	}
-	return -1;
-}
-size_t StringUtils::findCharInStrFromBack(char c, const char* str, const char* strEnd) {
-	if (strEnd == nullptr)
-		strEnd = str + std::strlen(str);
-	for (const char* ptr = strEnd-1; ptr >= str; ptr--) {
-		if (*ptr == c)
-			return ptr - str;
-	}
-	return -1;
-}
-
 std::vector<std::pair<size_t,std::string>> StringUtils::findStrings(const uint8_t* data, size_t dataLen, size_t minLen) {
 	std::vector<std::pair<size_t,std::string>> out;
 	size_t runStart = 0;
@@ -599,9 +578,9 @@ stof_calc:
 				if((int64_t)exponent_bias + exp < -fraction_bits) {
 					goto stof_zero;
 				}else{
-					uint8_t shft_amt = -((int64_t)exponent_bias + exp); // garanteed to be > 0
+					uint8_t shft_amt = (uint8_t)(-((int64_t)exponent_bias + exp)); // garanteed to be > 0
 
-					uint8_t round_up = (fraction&(1<<(shft_amt-1)))!=0;
+					uint8_t round_up = (fraction&((uint64_t)1<<(shft_amt-1)))!=0;
 					fraction >>= shft_amt;
 					fraction += round_up; // round up cant cause overflow
 				}
@@ -652,7 +631,6 @@ uint8_t StringUtils::getHBS(uint64_t x) {
 	return ret;
 }
 
-
 std::string StringUtils::getDirName(const char* path, const char* path_end) {
 	if (path_end == 0)
 		path_end = path + strlen(path);
@@ -660,44 +638,14 @@ std::string StringUtils::getDirName(const char* path, const char* path_end) {
 	while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
 		path_end--;
 
-	size_t lastSlash = findCharInStrFromBack('/', path, path_end);
-	size_t lastBSlash = findCharInStrFromBack('\\', path, path_end);
-	size_t lastDiv = std::max(lastSlash != (size_t)-1 ? lastSlash : 0, lastBSlash != (size_t)-1 ? lastBSlash : 0);
+	const char* lastSlash = findCharInStrFromBack('/', path, path_end);
+	const char* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+	const char* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
 
-	if(path+lastDiv+1 >= path_end)
+	if(lastDiv+1 >= path_end)
 		return "";
 
-	return std::string(path + lastDiv + 1, path_end);
-}
-const char* StringUtils::getFileName(const char* path, const char* path_end) {
-	if (path_end == 0)
-		path_end = path + strlen(path);
-
-	while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
-		path_end--;
-
-	size_t lastSlash = findCharInStrFromBack('/', path, path_end);
-	size_t lastBSlash = findCharInStrFromBack('\\', path, path_end);
-	size_t lastDiv = std::max(lastSlash != (size_t)-1 ? lastSlash : 0, lastBSlash != (size_t)-1 ? lastBSlash : 0);
-
-	return path + lastDiv + 1;
-}
-const char* StringUtils::getFileExtension(const char* path, const char* path_end) {
-	if (path_end == 0)
-		path_end = path + strlen(path);
-
-	size_t lastSlash = findCharInStrFromBack('/', path, path_end);
-	size_t lastBSlash = findCharInStrFromBack('\\', path, path_end);
-	size_t lastDiv = std::max(lastSlash != (size_t)-1 ? lastSlash : 0, lastBSlash != (size_t)-1 ? lastBSlash : 0);
-
-	size_t lastDot = findCharInStrFromBack('.', path, path_end);
-
-	if (lastDot > lastDiv) {
-		return path + lastDot + 1;
-	}
-	else {
-		return path_end;
-	}
+	return std::string(lastDiv + 1, path_end);
 }
 
 std::vector<size_t> StringUtils::generateLineIndexArr(const char* str) {

@@ -80,10 +80,12 @@ namespace StreamUtils {
             constexpr size_t size = sizeof(T);
 
             T out = 0;
-            for (size_t i = size-1; i>0; i--) {
-                char v;
-                stream.read(&v,1);
-                out |= ((T)(uint8_t)v)<<(i*8);
+            if constexpr (size > 1) {
+                for (size_t i = size-1; i>0; i--) {
+                    char v;
+                    stream.read(&v,1);
+                    out |= ((T)(uint8_t)v)<<(i*8);
+                }
             }
 
             char v;

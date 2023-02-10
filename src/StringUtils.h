@@ -36,7 +36,7 @@ namespace StringUtils {
 
 
 	template<typename T = uint64_t>
-	T numBaseStrToUInt(uint8_t base, const char* str, const char* strEnd = nullptr){
+	constexpr T numBaseStrToUInt(uint8_t base, const char* str, const char* strEnd = nullptr){
 		if (strEnd == nullptr)
 			strEnd = str + std::strlen(str);
 
@@ -61,7 +61,7 @@ namespace StringUtils {
 		return num;
 	}
 	template<uint8_t base, typename T = uint64_t>
-	T numBaseStrToUIntT(const char* str, const char* strEnd = nullptr) {
+	constexpr T numBaseStrToUIntT(const char* str, const char* strEnd = nullptr) {
 		if (strEnd == nullptr)
 			strEnd = str + std::strlen(str);
 
@@ -90,7 +90,7 @@ namespace StringUtils {
 	}
 
 	template<typename T = uint64_t>
-	T binStrToUInt(const char* str, const char* strEnd = nullptr){
+	constexpr T binStrToUInt(const char* str, const char* strEnd = nullptr){
 		if (strEnd == nullptr)
 			strEnd = str + std::strlen(str);
 
@@ -103,16 +103,16 @@ namespace StringUtils {
 		return out;
 	}
 	template<typename T = uint64_t>
-	T hexStrToUInt(const char* str, const char* strEnd = nullptr){
+	constexpr T hexStrToUInt(const char* str, const char* strEnd = nullptr){
 		return numBaseStrToUIntT<16,T>(str, strEnd);
 	}
 	template<typename T = uint64_t>
-	T hexStrToUIntLen(const char* str, size_t len){
+	constexpr T hexStrToUIntLen(const char* str, size_t len){
 		return hexStrToUInt<T>(str, str + len);
 	}
 
 	template<typename T = uint64_t>
-	T numStrToUInt(const char* str, const char* strEnd = nullptr){
+	constexpr T numStrToUInt(const char* str, const char* strEnd = nullptr){
 		// str at least 3 long
 		if (str + 2 < strEnd && str[0] == '0') {
 			switch (str[1]) {
@@ -132,14 +132,14 @@ namespace StringUtils {
 	std::string uIntToBinStr(uint64_t num, uint8_t digits);
 
 	template<typename T>
-	std::string vectorToStr(const std::vector<T>& vec) {
+	constexpr std::string vectorToStr(const std::vector<T>& vec) {
 		return vectorToStr(vec, [](const T& val){
 			return std::to_string(val);
 		});
 	}
 
 	template<typename T, typename F>
-	std::string vectorToStr(const std::vector<T>& vec, F toStrFunc) {
+	constexpr std::string vectorToStr(const std::vector<T>& vec, F toStrFunc) {
 		std::string out = "[";
 		for(size_t i = 0; i<vec.size(); i++) {
 			out += toStrFunc(vec[i]);
@@ -173,8 +173,24 @@ namespace StringUtils {
 	std::vector<uint8_t> loadFileIntoByteArray(const char* path, bool* success = 0);
 	bool writeBytesToFile(const uint8_t* data, size_t dataLen, const char* path);
 
-	size_t findCharInStr(char c, const char* str, const char* strEnd = nullptr);
-	size_t findCharInStrFromBack(char c, const char* str, const char* strEnd = nullptr);
+	constexpr const char* findCharInStr(char c, const char* str, const char* strEnd = nullptr) {
+		if (strEnd == nullptr)
+			strEnd = str + std::strlen(str);
+		for (const char* ptr = str; ptr < strEnd; ptr++) {
+			if (*ptr == c)
+				return ptr;
+		}
+		return nullptr;
+	}
+	constexpr const char* findCharInStrFromBack(char c, const char* str, const char* strEnd = nullptr) {
+		if (strEnd == nullptr)
+			strEnd = str + std::strlen(str);
+		for (const char* ptr = strEnd-1; ptr >= str; ptr--) {
+			if (*ptr == c)
+				return ptr;
+		}
+		return nullptr;
+	}
 	std::vector<std::pair<size_t,std::string>> findStrings(const uint8_t* data, size_t dataLen, size_t minLen = 1);
 
 	int strcasecmp(const char* a, const char* b, const char* a_end = NULL, const char* b_end = NULL);
@@ -187,8 +203,36 @@ namespace StringUtils {
 	uint8_t getHBS(uint64_t x);
 
 	std::string getDirName(const char* path, const char* path_end = NULL);
-	const char* getFileExtension(const char* path, const char* path_end = NULL);
-	const char* getFileName(const char* path, const char* path_end = NULL);
+	constexpr const char* getFileName(const char* path, const char* path_end = NULL){
+		if (path_end == 0)
+			path_end = path + strlen(path);
+
+		while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
+			path_end--;
+
+		const char* lastSlash = findCharInStrFromBack('/', path, path_end);
+		const char* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+		const char* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
+
+		return lastDiv + 1;
+	}
+	constexpr const char* getFileExtension(const char* path, const char* path_end = NULL){
+		if (path_end == 0)
+			path_end = path + strlen(path);
+
+		const char* lastSlash = findCharInStrFromBack('/', path, path_end);
+		const char* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+		const char* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
+
+		const char* lastDot = findCharInStrFromBack('.', path, path_end);
+
+		if (lastDot > lastDiv) {
+			return lastDot + 1;
+		}
+		else {
+			return path_end;
+		}
+	}
 
 	std::vector<size_t> generateLineIndexArr(const char* str);
 
