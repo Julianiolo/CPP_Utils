@@ -3,17 +3,17 @@
 
 #include <cstring>
 #include <cmath>
-
-#define BA_DATA_SIZE ((Size/8) + (((Size%8)==0)?0:1))
+#include <array>
+#include <cinttypes>
 
 template<size_t Size>
 class BitArray {
 private:
-    static constexpr size_t size = Size;
-    uint8_t data[BA_DATA_SIZE];
+    static constexpr size_t byteSize = ((Size / 8) + (((Size % 8) == 0) ? 0 : 1));
+    std::array<uint8_t,byteSize> data;
 public:
     BitArray(){
-        std::memset(data, 0, BA_DATA_SIZE);
+        std::memset(&data[0], 0, data.size());
     }
 
     void setBitTo(size_t ind, bool val) {
@@ -25,7 +25,7 @@ public:
     }
 
     BitArray operator|=(const BitArray<Size>& other) {
-        for(size_t i = 0; i<BA_DATA_SIZE; i++) {
+        for(size_t i = 0; i<data.size(); i++) {
             data[i] |= other.data[i];
         }
         return *this;
@@ -38,7 +38,7 @@ public:
     }
 
     size_t getLBC() const {
-        for(size_t i = 0; i< BA_DATA_SIZE; i++) {
+        for(size_t i = 0; i< data.size(); i++) {
             if(data[i] != 0xFF) {
                 for(uint8_t b = 0; b<8; b++) {
                     if((data[i] & (1<<b)) == 0) {
@@ -50,7 +50,5 @@ public:
         return -1;
     }
 };
-
-#undef BA_DATA_SIZE
 
 #endif

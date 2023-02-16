@@ -75,6 +75,10 @@ std::pair<const char*, const char*> StringUtils::stripString(const char* str, co
 
 	return {str,str_end};
 }
+std::string StringUtils::stripString_(std::string& str) {
+	auto res = stripString(str.c_str(), str.c_str() + str.size());
+	return std::string(res.first, res.second);
+}
 
 std::string StringUtils::loadFileIntoString(const char* path, bool* success) {
 	std::ifstream t(path, std::ios::binary);
@@ -613,22 +617,6 @@ stof_zero:
 
 stof_end:
 	return (sign << (exponent_bits + fraction_bits)) | (exponent << fraction_bits) | fraction;
-}
-
-uint8_t StringUtils::getLBS(uint64_t x) {
-	if (x == 0) return 64;
-
-	uint8_t ret = 0;
-	while ((x & 1) == 0) {
-		x >>= 1;
-		ret++;
-	}
-	return ret;
-}
-uint8_t StringUtils::getHBS(uint64_t x) {
-	uint8_t ret = 0;
-	while (x >>= 1) ret++;
-	return ret;
 }
 
 std::string StringUtils::getDirName(const char* path, const char* path_end) {

@@ -7,14 +7,17 @@
 #define DU_ARRAYSIZE(arr) (sizeof(arr)/sizeof(arr[0]))
 
 namespace DataUtils {
-	template<typename RandomIt,typename T>
-	T* binarySearchExlusive(RandomIt first, RandomIt last, const T& value, int (*compare)(const T& a, const T& b)) {
-		RandomIt from = first;
-		RandomIt to = last;
-		while (from != to) {
-			RandomIt mid = from + (to-from) / 2;
+	template<typename T,typename CMP>
+	size_t binarySearchExlusive(size_t len, const T& value, CMP compare) {
+		if (len == 0)
+			return -1;
 
-			int cmp = compare(value, *mid);
+		size_t from = 0;
+		size_t to = len-1;
+		while (from != to) {
+			size_t mid = from + (to-from) / 2;
+
+			int cmp = compare(value, mid);
 
 			if (cmp == 0) {
 				return mid;
@@ -31,16 +34,19 @@ namespace DataUtils {
 			}
 		}
 
-		if (compare(value, *from) == 0)
+		if (compare(value, from) == 0)
 			return from;
 
 	fail:
-		return nullptr;
+		return -1;
 	}
 
 	// find value, if not found return where to insert it; compare needs to be a funktion like object with (const T& a, size_t ind_of_b) -> int
 	template<typename T,typename CMP>
-	size_t binarySearchInclusive(size_t len, const T& value, CMP compare) {
+	constexpr inline size_t binarySearchInclusive(size_t len, const T& value, CMP compare) {
+		if (len == 0)
+			return -1;
+
 		size_t from = 0;
 		size_t to = len-1;
 		while (from < to) {
@@ -66,16 +72,6 @@ namespace DataUtils {
 		}
 		
 		return from;
-	}
-
-	template<typename RandomIt, typename T>
-	size_t findVal(RandomIt first, RandomIt last, const T& value) {
-		size_t len = std::distance(first, last);
-		for(size_t i = 0; i<len; i++) {
-			if(*(first + i) == value)
-				return i;
-		}
-		return -1;
 	}
 
 	uint64_t simpleHash(uint64_t v);

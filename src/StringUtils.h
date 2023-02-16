@@ -10,6 +10,60 @@
 #include <functional>
 
 namespace StringUtils {
+	/*
+		General String functions
+	*/
+
+	std::string paddLeft(const std::string& s, int paddedLength, char paddWith);
+	std::string paddRight(const std::string& s, int paddedLength, char paddWith);
+
+	std::pair<const char*, const char*> stripString(const char* str, const char* str_end = 0);
+	std::string stripString_(std::string& str);
+
+	template<typename ... Args>
+	std::string format(const char* str, Args ... args) { // https://stackoverflow.com/a/26221725
+		int size_i = std::snprintf(NULL, 0, str, args ...) + 1;
+		if (size_i <= 0)
+			throw std::runtime_error("error during string formatting");
+
+		char* buf = new char[size_i];
+		std::snprintf(buf, size_i, str, args ...);
+		return std::string(buf, buf+size_i-1);
+	}
+
+	constexpr inline bool isprint(uint32_t c) {
+		return c > 0x1f && c < 0x7f;
+	}
+	constexpr inline bool isWhitespace(uint32_t c) {
+		return c == ' ' || c == '\n' || c == '\r' || c == '\t';
+	}
+
+	constexpr const char* findCharInStr(char c, const char* str, const char* strEnd = nullptr) {
+		if (strEnd == nullptr)
+			strEnd = str + std::strlen(str);
+		for (const char* ptr = str; ptr < strEnd; ptr++) {
+			if (*ptr == c)
+				return ptr;
+		}
+		return nullptr;
+	}
+	constexpr const char* findCharInStrFromBack(char c, const char* str, const char* strEnd = nullptr) {
+		if (strEnd == nullptr)
+			strEnd = str + std::strlen(str);
+		for (const char* ptr = strEnd-1; ptr >= str; ptr--) {
+			if (*ptr == c)
+				return ptr;
+		}
+		return nullptr;
+	}
+	std::vector<std::pair<size_t,std::string>> findStrings(const uint8_t* data, size_t dataLen, size_t minLen = 1);
+
+	int strcasecmp(const char* a, const char* b, const char* a_end = NULL, const char* b_end = NULL);
+
+	/*
+		Conversion functions
+	*/
+
 	constexpr char hexDigitsLowerCase[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 	constexpr char hexDigitsUpperCase[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 	extern char texBuf[128];
@@ -131,13 +185,15 @@ namespace StringUtils {
 	void uIntToBinBuf(uint64_t num, uint8_t digits, char* buf);
 	std::string uIntToBinStr(uint64_t num, uint8_t digits);
 
+	// this function ignores any f/l suffixes, as the size of the float is explicitly stated through the bits
+	uint64_t stof(const char* str, const char* str_end, uint8_t exponent_bits = 8, uint8_t fraction_bits = 23, bool atof_compadible = false);
+
 	template<typename T>
 	constexpr std::string vectorToStr(const std::vector<T>& vec) {
 		return vectorToStr(vec, [](const T& val){
 			return std::to_string(val);
 		});
 	}
-
 	template<typename T, typename F>
 	constexpr std::string vectorToStr(const std::vector<T>& vec, F toStrFunc) {
 		std::string out = "[";
@@ -150,57 +206,15 @@ namespace StringUtils {
 		return out;
 	}
 
-
-	std::string paddLeft(const std::string& s, int paddedLength, char paddWith);
-	std::string paddRight(const std::string& s, int paddedLength, char paddWith);
-
-	std::pair<const char*, const char*> stripString(const char* str, const char* str_end = 0);
-
-	template<typename ... Args>
-	std::string format(const char* str, Args ... args) { // https://stackoverflow.com/a/26221725
-		int size_i = std::snprintf(NULL, 0, str, args ...) + 1;
-		if (size_i <= 0)
-			throw std::runtime_error("error during string formatting");
-
-		char* buf = new char[size_i];
-		std::snprintf(buf, size_i, str, args ...);
-		return std::string(buf, buf+size_i-1);
-	}
+	/*
+		IO
+	*/
 
 	std::string loadFileIntoString(const char* path, bool* success = 0);
 	bool writeStringToFile(const std::string& str, const char* path);
 
 	std::vector<uint8_t> loadFileIntoByteArray(const char* path, bool* success = 0);
 	bool writeBytesToFile(const uint8_t* data, size_t dataLen, const char* path);
-
-	constexpr const char* findCharInStr(char c, const char* str, const char* strEnd = nullptr) {
-		if (strEnd == nullptr)
-			strEnd = str + std::strlen(str);
-		for (const char* ptr = str; ptr < strEnd; ptr++) {
-			if (*ptr == c)
-				return ptr;
-		}
-		return nullptr;
-	}
-	constexpr const char* findCharInStrFromBack(char c, const char* str, const char* strEnd = nullptr) {
-		if (strEnd == nullptr)
-			strEnd = str + std::strlen(str);
-		for (const char* ptr = strEnd-1; ptr >= str; ptr--) {
-			if (*ptr == c)
-				return ptr;
-		}
-		return nullptr;
-	}
-	std::vector<std::pair<size_t,std::string>> findStrings(const uint8_t* data, size_t dataLen, size_t minLen = 1);
-
-	int strcasecmp(const char* a, const char* b, const char* a_end = NULL, const char* b_end = NULL);
-
-
-	// this function ignores any f/l suffixes, as the size of the float is explicitly stated through the bits
-	uint64_t stof(const char* str, const char* str_end, uint8_t exponent_bits = 8, uint8_t fraction_bits = 23, bool atof_compadible = false);
-
-	uint8_t getLBS(uint64_t x);
-	uint8_t getHBS(uint64_t x);
 
 	std::string getDirName(const char* path, const char* path_end = NULL);
 	constexpr const char* getFileName(const char* path, const char* path_end = NULL){
@@ -226,13 +240,17 @@ namespace StringUtils {
 
 		const char* lastDot = findCharInStrFromBack('.', path, path_end);
 
-		if (lastDot > lastDiv) {
+		if (lastDot && lastDot > lastDiv) {
 			return lastDot + 1;
 		}
 		else {
 			return path_end;
 		}
 	}
+
+	/*
+		Various Utility
+	*/
 
 	std::vector<size_t> generateLineIndexArr(const char* str);
 

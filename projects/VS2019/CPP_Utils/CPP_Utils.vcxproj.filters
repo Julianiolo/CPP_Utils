@@ -53,5 +53,8 @@
     <ClInclude Include="..\..\..\src\ActionManager.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\BitUtils.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

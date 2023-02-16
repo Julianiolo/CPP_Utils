@@ -28,6 +28,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\src\ActionManager.h" />
     <ClInclude Include="..\..\..\src\bitArray.h" />
+    <ClInclude Include="..\..\..\src\BitUtils.h" />
     <ClInclude Include="..\..\..\src\bitVector.h" />
     <ClInclude Include="..\..\..\src\DataUtils.h" />
     <ClInclude Include="..\..\..\src\ringBuffer.h" />
