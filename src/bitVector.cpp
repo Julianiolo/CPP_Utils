@@ -22,3 +22,7 @@ void BitVector::set(bsize_t i, bool val){
         data[i/8] &= ~(1 << i%8);
     }
 }
+
+size_t BitVector::sizeBytes() const {
+    return byteSize;
+}

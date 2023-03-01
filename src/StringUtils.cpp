@@ -8,33 +8,42 @@
 
 char StringUtils::texBuf[128];
 
-void StringUtils::uIntToHexBufCase(uint64_t num, uint8_t digits, char* buf, bool upperCase) {
+void StringUtils::uIntToHexBufCase(uint64_t num, char* buf, bool upperCase, uint8_t digits, char pad) {
 	if(!upperCase) {
-		StringUtils::uIntToHexBuf<false>(num, digits, buf);
+		StringUtils::uIntToHexBuf<false>(num, buf, digits, pad);
 	}
 	else {
-		StringUtils::uIntToHexBuf<true>(num, digits, buf);
+		StringUtils::uIntToHexBuf<true>(num, buf, digits, pad);
 	}	
 }
 
-void StringUtils::uIntToNumBaseBuf(uint64_t num, uint8_t digits, char* buf, uint8_t base, bool upperCase) {
+void StringUtils::uIntToBuf(uint64_t num, char* buf, uint8_t base, bool upperCase, uint8_t digits, char pad) {
+	if (digits == (decltype(digits))-1)
+		digits = numStrDigitsNeeded(num,base);
 	char* bufPtr = buf + digits;
 	while (digits--) {
-		uint8_t cNum = num % base;
-		char c = '#';
-		if (cNum <= 9)
-			c = '0' + cNum;
-		else if (cNum <= 36) {
-			c = (upperCase ? 'A' : 'a') + (cNum - 10);
+		if (num) {
+			uint8_t cNum = num % base;
+			char c = '#';
+			if (cNum <= 9)
+				c = '0' + cNum;
+			else if (cNum <= 36) {
+				c = (upperCase ? 'A' : 'a') + (cNum - 10);
+			}
+			*--bufPtr = c;
+			num /= base;
 		}
-		*--bufPtr = c;
-		num /= base;
+		else {
+			*--bufPtr = pad;
+		}
 	}
 }
 
-std::string StringUtils::uIntToNumBaseStr(uint64_t num, uint8_t digits, uint8_t base, bool upperCase) {
+std::string StringUtils::uIntToStr(uint64_t num, uint8_t base, bool upperCase, uint8_t digits, char pad) {
+	if (digits == (decltype(digits))-1)
+		digits = numStrDigitsNeeded(num,base);
 	std::string s(digits, ' ');
-	uIntToNumBaseBuf(num, digits, &s[0], base, upperCase);
+	uIntToBuf(num,&s[0], base, upperCase, digits, pad);
 	return s;
 }
 

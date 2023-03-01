@@ -49,6 +49,17 @@ public:
         }
         return -1;
     }
+
+    static constexpr size_t sizeBytes() {
+        return byteSize;
+    }
 };
+
+namespace DataUtils {
+    template<size_t size>
+    constexpr inline size_t approxSizeOf(const BitArray<size>& v) {
+        return BitArray<size>::sizeBytes();
+    }
+}
 
 #endif

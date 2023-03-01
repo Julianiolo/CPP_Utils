@@ -1,6 +1,8 @@
 #ifndef __STRING_UTILS_H__
 #define __STRING_UTILS_H__
 
+#define STRINGUTILS_STD_COMPLIANT 1
+
 #include <stdint.h>
 #include <vector>
 #include <string>
@@ -22,13 +24,28 @@ namespace StringUtils {
 
 	template<typename ... Args>
 	std::string format(const char* str, Args ... args) { // https://stackoverflow.com/a/26221725
-		int size_i = std::snprintf(NULL, 0, str, args ...) + 1;
+		int size_i = std::snprintf(NULL, 0, str, args ...);
 		if (size_i <= 0)
 			throw std::runtime_error("error during string formatting");
 
-		char* buf = new char[size_i];
+		size_i++; // add size for null term
+
+		char* buf;
+		std::string s;
+#if STRINGUTILS_STD_COMPLIANT
+		buf = new char[size_i];
+#else
+		s.resize(size_i);
+		buf = &s[0];
+#endif
+
 		std::snprintf(buf, size_i, str, args ...);
-		return std::string(buf, buf+size_i-1);
+
+#if STRINGUTILS_STD_COMPLIANT
+		s = std::string(buf, buf + size_i - 1);
+		delete[] buf;
+#endif
+		return s;
 	}
 
 	constexpr inline bool isprint(uint32_t c) {
@@ -68,25 +85,45 @@ namespace StringUtils {
 	constexpr char hexDigitsUpperCase[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 	extern char texBuf[128];
 
+	constexpr uint8_t numStrDigitsNeeded(uint64_t num, uint8_t base) {
+		uint8_t cnt = 0;
+		while (num) {
+			num /= base;
+			cnt++;
+		}
+		return std::max(cnt, (uint8_t)1);
+	}
+
 	template<bool upperCase = false>
-	void uIntToHexBuf(uint64_t num, uint8_t digits, char* buf) {
+	void uIntToHexBuf(uint64_t num, char* buf, uint8_t digits = -1, char pad = '0') {
+		if (digits == (decltype(digits))-1)
+			digits = numStrDigitsNeeded(num,16);
+
 		char* bufPtr = buf + digits;
+		bool stopOnEmpty;
 		while (digits--) {
-			*--bufPtr = (upperCase ? hexDigitsUpperCase : hexDigitsLowerCase)[num & 0xF];
-			num >>= 4;
+			if (num) {
+				*--bufPtr = (upperCase ? hexDigitsUpperCase : hexDigitsLowerCase)[num & 0xF];
+				num >>= 4;
+			}
+			else {
+				*--bufPtr = pad;
+			}
 		}
 	}
 	template<bool upperCase = false>
-	std::string uIntToHexStr(uint64_t num, uint8_t digits) {
-		std::string s(digits, ' ');
-		uIntToHexBuf<upperCase>(num, digits, &s[0]);
+	std::string uIntToHexStr(uint64_t num, uint8_t digits = -1, char pad = '0') {
+		if (digits == (decltype(digits))-1)
+			digits = numStrDigitsNeeded(num,16);
+		std::string s(digits,' ');
+		uIntToHexBuf<upperCase>(num, &s[0], digits, pad);
 		return s;
 	}
-	void uIntToHexBufCase(uint64_t num, uint8_t digits, char* buf, bool upperCase);
+	void uIntToHexBufCase(uint64_t num, char* buf, bool upperCase, uint8_t digits = -1, char pad = '0');
 	
 
-	void uIntToNumBaseBuf(uint64_t num, uint8_t digits, char* buf, uint8_t base = 10, bool upperCase = false);
-	std::string uIntToNumBaseStr(uint64_t num, uint8_t digits, uint8_t base = 10, bool upperCase = false);
+	void uIntToBuf(uint64_t num, char* buf, uint8_t base = 10, bool upperCase = false, uint8_t digits = -1, char pad = ' ');
+	std::string uIntToStr(uint64_t num, uint8_t base = 10, bool upperCase = false, uint8_t digits = -1, char pad = ' ');
 
 
 	template<typename T = uint64_t>

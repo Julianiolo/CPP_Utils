@@ -19,6 +19,14 @@ public:
     BitVector(bsize_t size);
     bool get(bsize_t i);
     void set(bsize_t i, bool val);
+
+    size_t sizeBytes() const;
 };
+
+namespace DataUtils {
+    inline size_t approxSizeOf(const BitVector& v) {
+        return v.sizeBytes();
+    }
+}
 
 #endif

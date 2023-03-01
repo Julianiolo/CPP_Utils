@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iterator>
+#include <stdexcept>
 
 template<typename T>
 class RingBuffer{
@@ -11,19 +12,20 @@ private:
     size_t ptr = 0;
     size_t len = 0;
 public:
+    template <typename IT, typename VT>
     class Iterator {
         using iterator_category = std::forward_iterator_tag;
         using difference_type = std::ptrdiff_t;
-        using value_type = T;
+        using value_type = VT;
         using pointer = value_type*;
         using reference = value_type&;
 
     private:
-        RingBuffer& rb;
+        IT& rb;
         size_t ind;
     public:
 
-        Iterator(RingBuffer& rb, size_t ind) : rb(rb), ind(ind) {
+        Iterator(IT& rb, size_t ind) : rb(rb), ind(ind) {
 
         }
 
@@ -83,10 +85,10 @@ public:
         len = std::min(len+1,data.size());
     }
 
-    size_t size(){
+    size_t size() const {
         return len;
     }
-    size_t sizeMax(){
+    size_t sizeMax() const{
         return data.size();
     }
 
@@ -99,7 +101,7 @@ public:
         return get(size() - 1);
     }
 
-    bool operator==(const RingBuffer& other) {
+    bool operator==(const RingBuffer& other) const {
         if (len != other.len || data.size() != other.data.size())
             return false;
         for (size_t i = 0; i < len; i++) {
@@ -109,11 +111,17 @@ public:
         return true;
     }
 
-    Iterator begin() {
-        return Iterator(*this, 0);
+    Iterator<RingBuffer,T> begin() {
+        return Iterator<RingBuffer,T>(*this, 0);
     }
-    Iterator end() {
-        return Iterator(*this, len);
+    Iterator<RingBuffer,T> end() {
+        return Iterator<RingBuffer,T>(*this, len);
+    }
+    Iterator<const RingBuffer,const T> begin() const {
+        return Iterator<const RingBuffer, const T>(*this, 0);
+    }
+    Iterator<const RingBuffer,const T> end() const {
+        return Iterator<const RingBuffer, const T>(*this, len);
     }
 };
 
