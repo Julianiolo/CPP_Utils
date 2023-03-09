@@ -100,7 +100,6 @@ namespace StringUtils {
 			digits = numStrDigitsNeeded(num,16);
 
 		char* bufPtr = buf + digits;
-		bool stopOnEmpty;
 		while (digits--) {
 			if (num) {
 				*--bufPtr = (upperCase ? hexDigitsUpperCase : hexDigitsLowerCase)[num & 0xF];

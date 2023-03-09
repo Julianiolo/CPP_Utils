@@ -114,6 +114,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -132,6 +133,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -150,6 +152,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -168,6 +171,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
