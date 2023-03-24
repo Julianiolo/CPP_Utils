@@ -2,14 +2,60 @@
 #define __DATAUTILS_H__
 
 #include <iterator>
+#include <cstdint>
+#include <cinttypes>
 #include <string>
-#include <vector>
-#include <array>
-#include <set>
-#include <map>
-#include "ringBuffer.h"
+
+// Print size_t macros
+#if SIZE_MAX == 0xffffull
+#define DU_PRIdSIZE PRId16
+#define DU_PRIuSIZE PRIu16
+#define DU_PRIxSIZE PRIx16
+#elif SIZE_MAX == 0xffffffffull
+#define DU_PRIdSIZE PRId32
+#define DU_PRIuSIZE PRIu32
+#define DU_PRIxSIZE PRIx32
+#elif SIZE_MAX == 0xffffffffffffffffull
+#define DU_PRIdSIZE PRId64
+#define DU_PRIuSIZE PRIu64
+#define DU_PRIxSIZE PRIx64
+#else
+#define DU_PRIdSIZE "d"
+#define DU_PRIuSIZE "u"
+#define DU_PRIxSIZE "x"
+#error
+#endif
+
+inline void __assertion_failed__(const char* file, int line) {
+	printf("Assertion Failed! %s:%d\n", file, line);
+	abort();
+}
+#ifdef _DEBUG
+#define DU_ASSERT(x) do {\
+        if(!(x)){\
+            __assertion_failed__(__FILE__, __LINE__);\
+        }\
+    } while(0)
+#else
+#define DU_ASSERT(x)
+#endif
+
+#ifdef _MSC_VER
+#define DU_STATIC_ASSERT(x) static_assert(x,"")
+#else
+#define DU_STATIC_ASSERT(x) static_assert(x)
+#endif
+#define DU_STATIC_ASSERT_MSG(x,msg) static_assert(x,msg)
 
 #define DU_ARRAYSIZE(arr) (sizeof(arr)/sizeof(arr[0]))
+
+#define DU_UNUSED(x) do { (void)(x); } while(0)
+
+#if __cplusplus >= 201703L
+#define DU_FALLTHROUGH [[fallthrough]]
+#else
+#define DU_FALLTHROUGH // fall through
+#endif
 
 namespace DataUtils {
 	template<typename T,typename CMP>
@@ -78,109 +124,6 @@ namespace DataUtils {
 		
 		return from;
 	}
-
-	inline constexpr size_t approxSizeOf(int8_t v) { return sizeof(v); };
-	inline constexpr size_t approxSizeOf(uint8_t v) { return sizeof(v); };
-	inline constexpr size_t approxSizeOf(int16_t v) { return sizeof(v); };
-	inline constexpr size_t approxSizeOf(uint16_t v) { return sizeof(v); };
-	inline constexpr size_t approxSizeOf(int32_t v) { return sizeof(v); };
-	inline constexpr size_t approxSizeOf(uint32_t v) { return sizeof(v); };
-	inline constexpr size_t approxSizeOf(int64_t v) { return sizeof(v); };
-	inline constexpr size_t approxSizeOf(uint64_t v) { return sizeof(v); };
-	inline constexpr size_t approxSizeOf(bool v) { return sizeof(v); };
-
-	template<typename T>
-	constexpr size_t approxSizeOf(T* v) {
-		return sizeof(T*);
-	}
-	inline size_t approxSizeOf(const std::string& v) {
-		return sizeof(std::string) + v.capacity() * sizeof(char);
-	}
-	inline size_t approxSizeOf(const std::wstring& v) {
-		return sizeof(std::wstring) + v.capacity() * sizeof(wchar_t);
-	}
-
-	template<typename T, size_t N>
-	size_t approxSizeOf(const std::array<T, N>& v);
-	template<typename Alloc>
-	size_t approxSizeOf(const std::vector<bool, Alloc>& v);
-	template<typename T, typename Alloc>
-	size_t approxSizeOf(const std::vector<T, Alloc>& v);
-	template<typename T, typename Alloc, typename SIZEFNC>
-	size_t approxSizeOf(const std::vector<T, Alloc>& v, SIZEFNC sf);
-	template<typename T, typename Traits, typename Alloc>
-	size_t approxSizeOf(const std::set<T, Traits, Alloc>& v);
-	template<typename T1, typename T2>
-	size_t approxSizeOf(const std::pair<T1, T2>& v);
-	template<typename TK, typename TV, typename Traits, typename Alloc>
-	size_t approxSizeOf(const std::map<TK, TV, Traits, Alloc>& v);
-	template<typename T>
-	size_t approxSizeOf(const RingBuffer<T>& v);
-
-	template<typename Alloc>
-	size_t approxSizeOf(const std::vector<bool,Alloc>& v) {
-		size_t sum = 0;
-		sum += sizeof(std::vector<bool, Alloc>);
-		sum += v.capacity()/8 + v.capacity() % 8 != 0;
-
-		return sum;
-	}
-	template<typename T, typename Alloc>
-	size_t approxSizeOf(const std::vector<T,Alloc>& v) {
-		size_t sum = 0;
-		sum += sizeof(std::vector<T, Alloc>);
-		for (const auto& e : v) sum += approxSizeOf(e);
-
-		sum += (v.capacity() - v.size()) * sizeof(T);
-
-		return sum;
-	}
-	template<typename T, typename Alloc, typename SIZEFNC>
-	size_t approxSizeOf(const std::vector<T,Alloc>& v, SIZEFNC sf) {
-		size_t sum = 0;
-		sum += sizeof(std::vector<T, Alloc>);
-		for (const auto& e : v) sum += sf(e);
-
-		sum += (v.capacity() - v.size()) * sizeof(T);
-
-		return sum;
-	}
-	template<typename T, size_t N>
-	size_t approxSizeOf(const std::array<T,N>& v) {
-		size_t sum = 0;
-		for (const auto& e : v) sum += approxSizeOf(e);
-		return sum;
-	}
-	template<typename T, typename Traits, typename Alloc>
-	size_t approxSizeOf(const std::set<T,Traits,Alloc>& v) {
-		size_t sum = 0;
-		sum += sizeof(std::set<T, Traits, Alloc>);
-		for (const auto& e : v) sum += approxSizeOf(e);
-		return sum;
-	}
-	template<typename T1, typename T2>
-	size_t approxSizeOf(const std::pair<T1,T2>& v) {
-		return approxSizeOf(v.first) + approxSizeOf(v.second);
-	}
-	template<typename TK, typename TV, typename Traits, typename Alloc>
-	size_t approxSizeOf(const std::map<TK,TV,Traits,Alloc>& v) {
-		size_t sum = 0;
-		sum += sizeof(std::map<TK,TV,Traits,Alloc>);
-		for (const auto& e : v) sum += approxSizeOf(e);
-		return sum;
-	}
-	template<typename T>
-	size_t approxSizeOf(const RingBuffer<T>& v) {
-		size_t sum = 0;
-		sum += sizeof(RingBuffer<T>);
-		for (const auto& e : v) sum += approxSizeOf(e);
-
-		sum += (v.sizeMax() - v.size()) * sizeof(T);
-
-		return sum;
-	}
-	
-
 
 	uint64_t simpleHash(uint64_t v);
 

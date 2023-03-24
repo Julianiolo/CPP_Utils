@@ -5,6 +5,9 @@
 
 #include <fstream>
 #include <streambuf>
+#include <exception>
+
+#include "DataUtils.h"
 
 char StringUtils::texBuf[128];
 
@@ -688,4 +691,49 @@ std::string StringUtils::addThousandsSeperator(const char* str, const char* str_
 	}
 
 	return out;
+}
+
+std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* str_end) {
+	if (str_end == nullptr){
+		str_end = str + std::strlen(str);
+	}
+	size_t strl = str_end-str;
+
+	// sanity check (check for non ascii characters)
+	for (size_t i = 0; i < strl; i++) {
+		unsigned char c = (unsigned char)str[i];
+		if (c == 0 || c > 127) {
+			throw std::runtime_error(StringUtils::format("Couldn't load Program from Hex, because it contained a non ASCII character (0x%02x at %" DU_PRIuSIZE ")", c, i));
+		}
+	}
+
+	std::vector<uint8_t> res;
+
+	size_t str_ind = 0;
+	while (str_ind < strl) {
+		if (str_ind >= strl) {
+			abort();
+		}
+		str_ind += 1;
+		uint8_t ByteCount = StringUtils::hexStrToUIntLen<uint8_t>(str + str_ind, 2);
+		str_ind += 2;
+		//uint32_t Addr = ((StringUtils::hexStrToUIntLen<uint32_t>(str + str_ind, 2)<<8) | StringUtils::hexStrToUIntLen<uint32_t>(str + str_ind + 2, 2));
+		str_ind += 4;
+		//uint8_t type = StringUtils::hexStrToUIntLen<uint8_t>(str + str_ind, 2);
+		//str_ind += 7;
+		for (uint8_t i = 0; i < ByteCount; i++) {
+#if MCU_RANGE_CHECK
+			if (flashInd >= sizeMax) {
+				abort();
+			}
+#endif
+			res.push_back(StringUtils::hexStrToUIntLen<uint8_t>(str + (str_ind += 2), 2));
+		}
+		str_ind += 4; //skip checksum
+		while (str_ind<strl && (str[str_ind] == '\n' || str[str_ind] == '\r')) {
+			str_ind++;
+		}
+	}
+
+	return res;
 }
