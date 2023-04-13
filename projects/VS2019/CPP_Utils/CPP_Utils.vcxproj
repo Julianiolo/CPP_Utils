@@ -19,12 +19,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\ActionManager.cpp" />
+    <ClCompile Include="..\..\..\src\bitVector.cpp" />
     <ClCompile Include="..\..\..\src\DataUtils.cpp" />
+    <ClCompile Include="..\..\..\src\LogUtils.cpp" />
     <ClCompile Include="..\..\..\src\StringUtils.cpp" />
     <ClCompile Include="..\..\..\src\SystemUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\src\ActionManager.h" />
+    <ClInclude Include="..\..\..\src\bitArray.h" />
+    <ClInclude Include="..\..\..\src\BitUtils.h" />
+    <ClInclude Include="..\..\..\src\bitVector.h" />
     <ClInclude Include="..\..\..\src\DataUtils.h" />
+    <ClInclude Include="..\..\..\src\DataUtilsSize.h" />
+    <ClInclude Include="..\..\..\src\LogUtils.h" />
+    <ClInclude Include="..\..\..\src\ringBuffer.h" />
     <ClInclude Include="..\..\..\src\StringUtils.h" />
     <ClInclude Include="..\..\..\src\SystemUtils.h" />
   </ItemGroup>
@@ -106,6 +116,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -123,6 +135,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -140,6 +154,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -157,6 +173,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>

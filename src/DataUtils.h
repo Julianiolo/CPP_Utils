@@ -2,21 +2,77 @@
 #define __DATAUTILS_H__
 
 #include <iterator>
+#include <cstdint>
+#include <cinttypes>
 #include <string>
 #include <functional>
 #include <queue>
 #include <mutex>
 #include <thread>
 
-namespace DataUtils {
-	template<typename RandomIt,typename T>
-	T* binarySearchExlusive(RandomIt first, RandomIt last, const T& value, int (*compare)(const T& a, const T& b)) {
-		RandomIt from = first;
-		RandomIt to = last;
-		while (from != to) {
-			RandomIt mid = from + (to-from) / 2;
+// Print size_t macros
+#if SIZE_MAX == 0xffffull
+#define DU_PRIdSIZE PRId16
+#define DU_PRIuSIZE PRIu16
+#define DU_PRIxSIZE PRIx16
+#elif SIZE_MAX == 0xffffffffull
+#define DU_PRIdSIZE PRId32
+#define DU_PRIuSIZE PRIu32
+#define DU_PRIxSIZE PRIx32
+#elif SIZE_MAX == 0xffffffffffffffffull
+#define DU_PRIdSIZE PRId64
+#define DU_PRIuSIZE PRIu64
+#define DU_PRIxSIZE PRIx64
+#else
+#define DU_PRIdSIZE "d"
+#define DU_PRIuSIZE "u"
+#define DU_PRIxSIZE "x"
+#error
+#endif
 
-			int cmp = compare(value, *mid);
+inline void __assertion_failed__(const char* file, int line) {
+	printf("Assertion Failed! %s:%d\n", file, line);
+	abort();
+}
+#ifdef _DEBUG
+#define DU_ASSERT(x) do {\
+        if(!(x)){\
+            __assertion_failed__(__FILE__, __LINE__);\
+        }\
+    } while(0)
+#else
+#define DU_ASSERT(x)
+#endif
+
+#ifdef _MSC_VER
+#define DU_STATIC_ASSERT(x) static_assert(x,"")
+#else
+#define DU_STATIC_ASSERT(x) static_assert(x)
+#endif
+#define DU_STATIC_ASSERT_MSG(x,msg) static_assert(x,msg)
+
+#define DU_ARRAYSIZE(arr) (sizeof(arr)/sizeof(arr[0]))
+
+#define DU_UNUSED(x) do { (void)(x); } while(0)
+
+#if __cplusplus >= 201703L
+#define DU_FALLTHROUGH [[fallthrough]]
+#else
+#define DU_FALLTHROUGH // fall through
+#endif
+
+namespace DataUtils {
+	template<typename T,typename CMP>
+	size_t binarySearchExlusive(size_t len, const T& value, CMP compare) {
+		if (len == 0)
+			return -1;
+
+		size_t from = 0;
+		size_t to = len-1;
+		while (from != to) {
+			size_t mid = from + (to-from) / 2;
+
+			int cmp = compare(value, mid);
 
 			if (cmp == 0) {
 				return mid;
@@ -33,16 +89,19 @@ namespace DataUtils {
 			}
 		}
 
-		if (compare(value, *from) == 0)
+		if (compare(value, from) == 0)
 			return from;
 
 	fail:
-		return nullptr;
+		return -1;
 	}
 
 	// find value, if not found return where to insert it; compare needs to be a funktion like object with (const T& a, size_t ind_of_b) -> int
 	template<typename T,typename CMP>
-	size_t binarySearchInclusive(size_t len, const T& value, CMP compare) {
+	constexpr inline size_t binarySearchInclusive(size_t len, const T& value, CMP compare) {
+		if (len == 0)
+			return -1;
+
 		size_t from = 0;
 		size_t to = len-1;
 		while (from < to) {
@@ -68,16 +127,6 @@ namespace DataUtils {
 		}
 		
 		return from;
-	}
-
-	template<typename RandomIt, typename T>
-	size_t findVal(RandomIt first, RandomIt last, const T& value) {
-		size_t len = std::distance(first, last);
-		for(size_t i = 0; i<len; i++) {
-			if(*(first + i) == value)
-				return i;
-		}
-		return -1;
 	}
 
 	uint64_t simpleHash(uint64_t v);

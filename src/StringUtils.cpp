@@ -5,36 +5,48 @@
 
 #include <fstream>
 #include <streambuf>
+#include <exception>
+
+#include "DataUtils.h"
 
 char StringUtils::texBuf[128];
 
-void StringUtils::uIntToHexBufCase(uint64_t num, uint8_t digits, char* buf, bool upperCase) {
+void StringUtils::uIntToHexBufCase(uint64_t num, char* buf, bool upperCase, uint8_t digits, char pad) {
 	if(!upperCase) {
-		StringUtils::uIntToHexBuf<false>(num, digits, buf);
+		StringUtils::uIntToHexBuf<false>(num, buf, digits, pad);
 	}
 	else {
-		StringUtils::uIntToHexBuf<true>(num, digits, buf);
+		StringUtils::uIntToHexBuf<true>(num, buf, digits, pad);
 	}	
 }
 
-void StringUtils::uIntToNumBaseBuf(uint64_t num, uint8_t digits, char* buf, uint8_t base, bool upperCase) {
+void StringUtils::uIntToBuf(uint64_t num, char* buf, uint8_t base, bool upperCase, uint8_t digits, char pad) {
+	if (digits == (decltype(digits))-1)
+		digits = numStrDigitsNeeded(num,base);
 	char* bufPtr = buf + digits;
 	while (digits--) {
-		uint8_t cNum = num % base;
-		char c = '#';
-		if (cNum <= 9)
-			c = '0' + cNum;
-		else if (cNum <= 36) {
-			c = (upperCase ? 'A' : 'a') + (cNum - 10);
+		if (num) {
+			uint8_t cNum = num % base;
+			char c = '#';
+			if (cNum <= 9)
+				c = '0' + cNum;
+			else if (cNum <= 36) {
+				c = (upperCase ? 'A' : 'a') + (cNum - 10);
+			}
+			*--bufPtr = c;
+			num /= base;
 		}
-		*--bufPtr = c;
-		num /= base;
+		else {
+			*--bufPtr = pad;
+		}
 	}
 }
 
-std::string StringUtils::uIntToNumBaseStr(uint64_t num, uint8_t digits, uint8_t base, bool upperCase) {
+std::string StringUtils::uIntToStr(uint64_t num, uint8_t base, bool upperCase, uint8_t digits, char pad) {
+	if (digits == (decltype(digits))-1)
+		digits = numStrDigitsNeeded(num,base);
 	std::string s(digits, ' ');
-	uIntToNumBaseBuf(num, digits, &s[0], base, upperCase);
+	uIntToBuf(num,&s[0], base, upperCase, digits, pad);
 	return s;
 }
 
@@ -74,6 +86,10 @@ std::pair<const char*, const char*> StringUtils::stripString(const char* str, co
 		str_end--;
 
 	return {str,str_end};
+}
+std::string StringUtils::stripString_(std::string& str) {
+	auto res = stripString(str.c_str(), str.c_str() + str.size());
+	return std::string(res.first, res.second);
 }
 
 std::string StringUtils::loadFileIntoString(const char* path, bool* success) {
@@ -137,27 +153,6 @@ bool StringUtils::writeBytesToFile(const uint8_t* data, size_t dataLen, const ch
 	out.write((const char*)data, dataLen);
 	out.close();
 	return true;
-}
-
-
-
-size_t StringUtils::findCharInStr(char c, const char* str, const char* strEnd) {
-	if (strEnd == nullptr)
-		strEnd = str + std::strlen(str);
-	for (const char* ptr = str; ptr < strEnd; ptr++) {
-		if (*ptr == c)
-			return ptr - str;
-	}
-	return -1;
-}
-size_t StringUtils::findCharInStrFromBack(char c, const char* str, const char* strEnd) {
-	if (strEnd == nullptr)
-		strEnd = str + std::strlen(str);
-	for (const char* ptr = strEnd-1; ptr >= str; ptr--) {
-		if (*ptr == c)
-			return ptr - str;
-	}
-	return -1;
 }
 
 std::vector<std::pair<size_t,std::string>> StringUtils::findStrings(const uint8_t* data, size_t dataLen, size_t minLen) {
@@ -601,9 +596,9 @@ stof_calc:
 				if((int64_t)exponent_bias + exp < -fraction_bits) {
 					goto stof_zero;
 				}else{
-					uint8_t shft_amt = -((int64_t)exponent_bias + exp); // garanteed to be > 0
+					uint8_t shft_amt = (uint8_t)(-((int64_t)exponent_bias + exp)); // garanteed to be > 0
 
-					uint8_t round_up = (fraction&(1<<(shft_amt-1)))!=0;
+					uint8_t round_up = (fraction&((uint64_t)1<<(shft_amt-1)))!=0;
 					fraction >>= shft_amt;
 					fraction += round_up; // round up cant cause overflow
 				}
@@ -638,23 +633,6 @@ stof_end:
 	return (sign << (exponent_bits + fraction_bits)) | (exponent << fraction_bits) | fraction;
 }
 
-uint8_t StringUtils::getLBS(uint64_t x) {
-	if (x == 0) return 64;
-
-	uint8_t ret = 0;
-	while ((x & 1) == 0) {
-		x >>= 1;
-		ret++;
-	}
-	return ret;
-}
-uint8_t StringUtils::getHBS(uint64_t x) {
-	uint8_t ret = 0;
-	while (x >>= 1) ret++;
-	return ret;
-}
-
-
 std::string StringUtils::getDirName(const char* path, const char* path_end) {
 	if (path_end == 0)
 		path_end = path + strlen(path);
@@ -662,44 +640,14 @@ std::string StringUtils::getDirName(const char* path, const char* path_end) {
 	while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
 		path_end--;
 
-	size_t lastSlash = findCharInStrFromBack('/', path, path_end);
-	size_t lastBSlash = findCharInStrFromBack('\\', path, path_end);
-	size_t lastDiv = std::max(lastSlash != (size_t)-1 ? lastSlash : 0, lastBSlash != (size_t)-1 ? lastBSlash : 0);
+	const char* lastSlash = findCharInStrFromBack('/', path, path_end);
+	const char* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+	const char* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
 
-	if(path+lastDiv+1 >= path_end)
+	if(lastDiv+1 >= path_end)
 		return "";
 
-	return std::string(path + lastDiv + 1, path_end);
-}
-const char* StringUtils::getFileName(const char* path, const char* path_end) {
-	if (path_end == 0)
-		path_end = path + strlen(path);
-
-	while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
-		path_end--;
-
-	size_t lastSlash = findCharInStrFromBack('/', path, path_end);
-	size_t lastBSlash = findCharInStrFromBack('\\', path, path_end);
-	size_t lastDiv = std::max(lastSlash != (size_t)-1 ? lastSlash : 0, lastBSlash != (size_t)-1 ? lastBSlash : 0);
-
-	return path + lastDiv + 1;
-}
-const char* StringUtils::getFileExtension(const char* path, const char* path_end) {
-	if (path_end == 0)
-		path_end = path + strlen(path);
-
-	size_t lastSlash = findCharInStrFromBack('/', path, path_end);
-	size_t lastBSlash = findCharInStrFromBack('\\', path, path_end);
-	size_t lastDiv = std::max(lastSlash != (size_t)-1 ? lastSlash : 0, lastBSlash != (size_t)-1 ? lastBSlash : 0);
-
-	size_t lastDot = findCharInStrFromBack('.', path, path_end);
-
-	if (lastDot > lastDiv) {
-		return path + lastDot + 1;
-	}
-	else {
-		return path_end;
-	}
+	return std::string(lastDiv + 1, path_end);
 }
 
 std::vector<size_t> StringUtils::generateLineIndexArr(const char* str) {
@@ -745,4 +693,49 @@ std::string StringUtils::addThousandsSeperator(const char* str, const char* str_
 	}
 
 	return out;
+}
+
+std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* str_end) {
+	if (str_end == nullptr){
+		str_end = str + std::strlen(str);
+	}
+	size_t strl = str_end-str;
+
+	// sanity check (check for non ascii characters)
+	for (size_t i = 0; i < strl; i++) {
+		unsigned char c = (unsigned char)str[i];
+		if (c == 0 || c > 127) {
+			throw std::runtime_error(StringUtils::format("Couldn't load Program from Hex, because it contained a non ASCII character (0x%02x at %" DU_PRIuSIZE ")", c, i));
+		}
+	}
+
+	std::vector<uint8_t> res;
+
+	size_t str_ind = 0;
+	while (str_ind < strl) {
+		if (str_ind >= strl) {
+			abort();
+		}
+		str_ind += 1;
+		uint8_t ByteCount = StringUtils::hexStrToUIntLen<uint8_t>(str + str_ind, 2);
+		str_ind += 2;
+		//uint32_t Addr = ((StringUtils::hexStrToUIntLen<uint32_t>(str + str_ind, 2)<<8) | StringUtils::hexStrToUIntLen<uint32_t>(str + str_ind + 2, 2));
+		str_ind += 4;
+		//uint8_t type = StringUtils::hexStrToUIntLen<uint8_t>(str + str_ind, 2);
+		//str_ind += 7;
+		for (uint8_t i = 0; i < ByteCount; i++) {
+#if MCU_RANGE_CHECK
+			if (flashInd >= sizeMax) {
+				abort();
+			}
+#endif
+			res.push_back(StringUtils::hexStrToUIntLen<uint8_t>(str + (str_ind += 2), 2));
+		}
+		str_ind += 4; //skip checksum
+		while (str_ind<strl && (str[str_ind] == '\n' || str[str_ind] == '\r')) {
+			str_ind++;
+		}
+	}
+
+	return res;
 }
