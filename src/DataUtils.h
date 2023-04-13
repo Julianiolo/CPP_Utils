@@ -13,6 +13,7 @@
 #include <mutex>
 #include <thread>
 #include <stdexcept>
+#include <string_view>
 
 // Print size_t macros
 #if SIZE_MAX == 0xffffull
