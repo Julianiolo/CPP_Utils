@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\..\src\bitVector.cpp" />
     <ClCompile Include="..\..\..\src\DataUtils.cpp" />
     <ClCompile Include="..\..\..\src\LogUtils.cpp" />
+    <ClCompile Include="..\..\..\src\StreamUtils.cpp" />
     <ClCompile Include="..\..\..\src\StringUtils.cpp" />
     <ClCompile Include="..\..\..\src\SystemUtils.cpp" />
   </ItemGroup>
@@ -35,6 +36,7 @@
     <ClInclude Include="..\..\..\src\DataUtilsSize.h" />
     <ClInclude Include="..\..\..\src\LogUtils.h" />
     <ClInclude Include="..\..\..\src\ringBuffer.h" />
+    <ClInclude Include="..\..\..\src\StreamUtils.h" />
     <ClInclude Include="..\..\..\src\StringUtils.h" />
     <ClInclude Include="..\..\..\src\SystemUtils.h" />
   </ItemGroup>

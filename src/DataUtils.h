@@ -1,14 +1,18 @@
 #ifndef __DATAUTILS_H__
 #define __DATAUTILS_H__
 
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS 1
+#endif
+#include <cinttypes>
 #include <iterator>
 #include <cstdint>
-#include <cinttypes>
 #include <string>
 #include <functional>
 #include <queue>
 #include <mutex>
 #include <thread>
+#include <stdexcept>
 
 // Print size_t macros
 #if SIZE_MAX == 0xffffull
@@ -27,7 +31,7 @@
 #define DU_PRIdSIZE "d"
 #define DU_PRIuSIZE "u"
 #define DU_PRIxSIZE "x"
-#error
+#error lel
 #endif
 
 inline void __assertion_failed__(const char* file, int line) {
@@ -43,6 +47,12 @@ inline void __assertion_failed__(const char* file, int line) {
 #else
 #define DU_ASSERT(x)
 #endif
+
+#define DU_ASSERTEX(x, msg) do {\
+	if(!(x)){\
+            throw std::runtime_error(msg);\
+        }\
+    } while(0)
 
 #ifdef _MSC_VER
 #define DU_STATIC_ASSERT(x) static_assert(x,"")
@@ -147,6 +157,41 @@ namespace DataUtils {
 		bool busy();
 		bool running();
 		void addJob(const std::function<void(void)>& job);
+	};
+
+	class ByteStream {
+	public:
+		class NoDataLeftException : public std::runtime_error {
+		public:
+			size_t off;
+			size_t getAmt;
+			size_t dataLen;
+			NoDataLeftException(size_t off, size_t getAmt, size_t dataLen);
+		};
+
+		const uint8_t* data;
+		size_t dataLen;
+		bool lsbFirst;
+
+		size_t off;
+
+		ByteStream(const uint8_t* data, size_t dataLen, bool isLsbFirst = true, size_t startOff = 0);
+
+		void setIsLsbFirst(bool isLsbFirst);
+		void setLen(size_t len);
+
+		uint64_t getInt(size_t numBytes);
+		uint8_t getByte(bool advance = true);
+		std::string_view getBytes(size_t amt);
+		void read(uint8_t* dest, size_t amt);
+		std::string_view readStr();
+
+		void advance(size_t amt);
+		void goTo(size_t offset);
+		size_t getOff() const;
+
+		bool canReadAmt(size_t amt) const;
+		bool hasLeft() const;
 	};
 
 	namespace EditMemory {

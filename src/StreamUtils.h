@@ -28,6 +28,7 @@ namespace StreamUtils {
             std::is_same_v<T,uint16_t> || std::is_same_v<T,int16_t> || 
             std::is_same_v<T,uint32_t> || std::is_same_v<T,int32_t> || 
             std::is_same_v<T,uint64_t> || std::is_same_v<T,int64_t> || 
+            std::is_same_v<T,size_t> ||
             std::is_same_v<T,bool>
         ){
             constexpr size_t size = sizeof(T);
@@ -46,7 +47,7 @@ namespace StreamUtils {
             }else if constexpr(size == 8) {
                 val_ = *(uint64_t*)&val;
             }else{
-                abort();
+                static_assert(sizeof(T) == 0, "no behaviour defined for this size of float");
             }
 
             for(ptrdiff_t i = size-1; i>=0; i--) {
@@ -66,6 +67,10 @@ namespace StreamUtils {
         }else{
             static_assert(sizeof(T) == 0, "no behaviour defined for this type");
         }
+
+        if (!stream) {
+            throw std::runtime_error("Stream error");
+        }
     }
 
     template<typename T>
@@ -75,6 +80,7 @@ namespace StreamUtils {
             std::is_same_v<T,uint16_t> || std::is_same_v<T,int16_t> || 
             std::is_same_v<T,uint32_t> || std::is_same_v<T,int32_t> || 
             std::is_same_v<T,uint64_t> || std::is_same_v<T,int64_t> || 
+            std::is_same_v<T,size_t> ||
             std::is_same_v<T,bool>
         ){
             constexpr size_t size = sizeof(T);
@@ -122,6 +128,10 @@ namespace StreamUtils {
             *val = std::move(s);
         }else{
             static_assert(sizeof(T) == 0, "no behaviour defined for this type");
+        }
+
+        if (!stream) {
+            throw std::runtime_error("Stream error");
         }
     }
 }

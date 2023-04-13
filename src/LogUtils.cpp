@@ -1,6 +1,7 @@
 #include "LogUtils.h"
 
 #include <map>
+#include <iostream>
 
 static std::pair<LogUtils::LogCallB, void*> staticLogContext = { 0,0 };
 

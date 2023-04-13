@@ -85,6 +85,108 @@ void DataUtils::ThreadPool::threadRun() {
 		job();
 	}
 }
+DataUtils::ByteStream::NoDataLeftException::NoDataLeftException(size_t off, size_t getAmt, size_t dataLen) : std::runtime_error(StringUtils::format("Trying to get %" DU_PRIuSIZE " Bytes but only %" DU_PRIuSIZE " are left! total: %" DU_PRIuSIZE, getAmt, dataLen-off,dataLen)), 
+off(off), getAmt(getAmt), dataLen(dataLen) 
+{
+
+}
+
+DataUtils::ByteStream::ByteStream(const uint8_t* data, size_t dataLen, bool isLsbFirst, size_t startOff) : data(data), dataLen(dataLen), lsbFirst(isLsbFirst), off(startOff) {
+
+}
+
+void DataUtils::ByteStream::setIsLsbFirst(bool isLsbFirst) {
+	lsbFirst = isLsbFirst;
+}
+void DataUtils::ByteStream::setLen(size_t len) {
+	dataLen = len;
+}
+
+uint64_t DataUtils::ByteStream::getInt(size_t numBytes) {
+	if (off + numBytes > dataLen)
+		throw NoDataLeftException(off, numBytes, dataLen);
+
+	uint64_t out = 0;
+	if (!lsbFirst) {
+		for (size_t i = 0; i < numBytes; i++) {
+			out <<= 8;
+			out |= data[off + i];
+		}
+	}
+	else {
+		for (size_t i = 0; i < numBytes; i++) {
+			out <<= 8;
+			out |= data[off + numBytes - 1 - i];
+		}
+	}
+
+	off += numBytes;
+
+	return out;
+}
+uint8_t DataUtils::ByteStream::getByte(bool advance) {
+	if (off + 1 > dataLen)
+		throw NoDataLeftException(off, 1, dataLen);
+
+	uint8_t res = data[off];
+
+	if (advance)
+		off++;
+
+	return res;
+}
+std::string_view DataUtils::ByteStream::getBytes(size_t amt) {
+	if (off + amt > dataLen)
+		throw NoDataLeftException(off, amt, dataLen);
+
+	std::string_view res((const char*)data+off, amt);
+	off += amt;
+	return res;
+}
+void DataUtils::ByteStream::read(uint8_t* dest, size_t amt) {
+	if (off + amt > dataLen)
+		throw NoDataLeftException(off, amt, dataLen);
+
+	std::memcpy(dest, data + off, amt);
+	off += amt;
+}
+std::string_view DataUtils::ByteStream::readStr() {
+	const char* start = (const char*)data + off;
+	while (true) {
+		if(off + 1 > dataLen)
+			throw NoDataLeftException(off, 1, dataLen);
+
+		char c = data[off++];
+
+		if (!c) {
+			const char* end = (const char*)data + off-1;
+			return std::string_view(start, end-start);
+		}
+	}
+}
+
+void DataUtils::ByteStream::advance(size_t amt) {
+	if (off + amt > dataLen)
+		throw NoDataLeftException(off, amt, dataLen);
+
+	off += amt;
+}
+void DataUtils::ByteStream::goTo(size_t offset) {
+	if (offset > dataLen)
+		throw NoDataLeftException(off, offset-off, dataLen);
+
+	off = offset;
+}
+size_t DataUtils::ByteStream::getOff() const {
+	return off;
+}
+
+bool DataUtils::ByteStream::canReadAmt(size_t amt) const {
+	return off + amt < dataLen;
+}
+bool DataUtils::ByteStream::hasLeft() const {
+	return off < dataLen;
+}
 
 uint64_t DataUtils::EditMemory::readValue(const uint8_t* data, size_t dataLen, uint8_t editType, uint8_t editEndian) {
 	uint64_t res = 0;
