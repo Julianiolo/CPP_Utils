@@ -6,10 +6,40 @@
 #include <fstream>
 #include <streambuf>
 #include <exception>
+#include <iostream>
 
 #include "DataUtils.h"
 
 char StringUtils::texBuf[128];
+
+bool StringUtils::isValidBaseNum(uint8_t base, const char* str, const char* str_end) {
+	if (str_end == 0)
+		str_end = str + std::strlen(str);
+	size_t len = str_end - str;
+
+	for (size_t i = 0; i < len; i++) {
+		char c = str[i];
+
+		if (c >= '0' && c <= '9') {
+			uint8_t val = c - '0';
+			if (val >= base) return false;
+		}
+		else {
+			if (c >= 'A' && c <= 'Z')
+				c += 'a' - 'A';
+
+			if (c >= 'a' && c <= 'z') {
+				uint8_t val = 10 + (c - 'a');
+				if (val >= base) return false;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
 
 void StringUtils::uIntToHexBufCase(uint64_t num, char* buf, bool upperCase, uint8_t digits, char pad) {
 	if(!upperCase) {
@@ -92,24 +122,21 @@ std::string StringUtils::stripString_(std::string& str) {
 	return std::string(res.first, res.second);
 }
 
-std::string StringUtils::loadFileIntoString(const char* path, bool* success) {
+std::string StringUtils::loadFileIntoString(const char* path) {
 	std::ifstream t(path, std::ios::binary);
 	
 	if(!t.is_open()){
-		if (success)
-			*success = false;
-		return "";
+		throw std::runtime_error(StringUtils::format("could not open the file \"%s\"",path));
 	}
 
 	t.seekg(0, std::ios::end);
 	uint64_t size = t.tellg();
 	t.seekg(0, std::ios::beg);
+
 	std::string fileStr((size_t)size, ' ');
 
 	t.read(&fileStr[0], size);
 	t.close();
-	if (success)
-		*success = true;
 	return fileStr;
 }
 
@@ -120,28 +147,23 @@ bool StringUtils::writeStringToFile(const std::string& str, const char* path) {
 	return true;
 }
 
-std::vector<uint8_t> StringUtils::loadFileIntoByteArray(const char* path, bool* success) {
+std::vector<uint8_t> StringUtils::loadFileIntoByteArray(const char* path) {
 	std::ifstream t(path, std::ios::binary);
-	std::vector<uint8_t> byteArr;
 
 	if(!t.is_open()){
-		if (success)
-			*success = false;
-		return byteArr;
+		throw std::runtime_error(StringUtils::format("could not open the file \"%s\"",path));
 	}
 
-	byteArr.clear();
+	std::vector<uint8_t> byteArr;
 
 	t.seekg(0, std::ios::end);
 	uint64_t size = t.tellg();
 	t.seekg(0, std::ios::beg);
 	byteArr.resize((size_t)size);
 
-	t.read((char*) & byteArr[0], size);
+	if(size > 0)
+		t.read((char*) & byteArr[0], size);
 	t.close();
-
-	if (success)
-		*success = true;
 
 	return byteArr;
 }
@@ -151,6 +173,11 @@ bool StringUtils::writeBytesToFile(const uint8_t* data, size_t dataLen, const ch
 	out.write((const char*)data, dataLen);
 	out.close();
 	return true;
+}
+
+bool StringUtils::fileExists(const char* path) {
+	std::ifstream file(path);
+	return file.good();
 }
 
 std::vector<std::pair<size_t,std::string>> StringUtils::findStrings(const uint8_t* data, size_t dataLen, size_t minLen) {
@@ -703,35 +730,88 @@ std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* s
 	for (size_t i = 0; i < strl; i++) {
 		unsigned char c = (unsigned char)str[i];
 		if (c == 0 || c > 127) {
-			throw std::runtime_error(StringUtils::format("Couldn't load Program from Hex, because it contained a non ASCII character (0x%02x at %" DU_PRIuSIZE ")", c, i));
+			throw std::runtime_error(StringUtils::format("Couldn't load from Hex, because it contained a non ASCII character (0x%02x at %" DU_PRIuSIZE ")", c, i));
 		}
 	}
 
+	DataUtils::ByteStream stream((const uint8_t*)str, strl);
+
 	std::vector<uint8_t> res;
 
-	size_t str_ind = 0;
-	while (str_ind < strl) {
-		if (str_ind >= strl) {
-			abort();
+	while (stream.hasLeft()) {
+		stream.advance(1); // skip :
+
+		uint8_t checksum = 0;
+
+		uint8_t byteCount;
+		{
+			std::string_view byteCountStr = stream.getBytes(2);
+			if (!StringUtils::isValidBaseNum(16, byteCountStr.data(), byteCountStr.data() + 2))
+				throw std::runtime_error(
+					StringUtils::format("byte count at %" DU_PRIuSIZE " contains non hex values: \"%s\"", 
+						stream.getOff()-2, std::string(byteCountStr).c_str())
+				);
+			byteCount = StringUtils::hexStrToUIntLen<uint8_t>(byteCountStr.data(), 2);
+			checksum += byteCount;
 		}
-		str_ind += 1;
-		uint8_t ByteCount = StringUtils::hexStrToUIntLen<uint8_t>(str + str_ind, 2);
-		str_ind += 2;
-		//uint32_t Addr = ((StringUtils::hexStrToUIntLen<uint32_t>(str + str_ind, 2)<<8) | StringUtils::hexStrToUIntLen<uint32_t>(str + str_ind + 2, 2));
-		str_ind += 4;
-		//uint8_t type = StringUtils::hexStrToUIntLen<uint8_t>(str + str_ind, 2);
-		//str_ind += 7;
-		for (uint8_t i = 0; i < ByteCount; i++) {
-#if MCU_RANGE_CHECK
-			if (flashInd >= sizeMax) {
-				abort();
-			}
-#endif
-			res.push_back(StringUtils::hexStrToUIntLen<uint8_t>(str + (str_ind += 2), 2));
+		
+		uint16_t addr;
+		{
+			std::string_view addrStr = stream.getBytes(4);
+			if (!StringUtils::isValidBaseNum(16, addrStr.data(), addrStr.data() + 4))
+				throw std::runtime_error(
+					StringUtils::format("addr at %" DU_PRIuSIZE " contains non hex values: \"%s\"", 
+						stream.getOff()-4, std::string(addrStr).c_str())
+				);
+			uint8_t addrH = StringUtils::hexStrToUIntLen<uint8_t>(addrStr.data(), 2);
+			uint8_t addrL = StringUtils::hexStrToUIntLen<uint8_t>(addrStr.data()+2, 2);
+			checksum += addrH + addrL;
+			addr = (uint16_t)addrH << 8 | addrL;
 		}
-		str_ind += 4; //skip checksum
-		while (str_ind<strl && (str[str_ind] == '\n' || str[str_ind] == '\r')) {
-			str_ind++;
+		
+		uint8_t type;
+		{
+			std::string_view typeStr = stream.getBytes(2);
+			if (!StringUtils::isValidBaseNum(16, typeStr.data(), typeStr.data() + 2))
+				throw std::runtime_error(
+					StringUtils::format("type at %" DU_PRIuSIZE " contains non hex values: \"%s\"", 
+						stream.getOff()-2, std::string(typeStr).c_str())
+				);
+			type = StringUtils::hexStrToUIntLen<uint8_t>(typeStr.data(), 2);
+			checksum += type;
+		}
+
+		std::string_view byteStr = stream.getBytes((size_t)byteCount * 2);
+		if (!StringUtils::isValidBaseNum(16, byteStr.data(), byteStr.data() + (size_t)byteCount*2))
+			throw std::runtime_error(
+				StringUtils::format("data at %" DU_PRIuSIZE " contains non hex values: \"%s\"", 
+					stream.getOff()-(size_t)byteCount*2, std::string(byteStr).c_str())
+			);
+		for (uint8_t i = 0; i < byteCount; i++) {
+			uint8_t val = StringUtils::hexStrToUIntLen<uint8_t>(byteStr.data() + i * 2, 2);
+			checksum += val;
+			res.push_back(val);
+		}
+
+		uint8_t checkVal;
+		{
+			std::string_view checkStr = stream.getBytes(2);
+			if (!StringUtils::isValidBaseNum(16, checkStr.data(), checkStr.data() + 2))
+				throw std::runtime_error(
+					StringUtils::format("checksum at %" DU_PRIuSIZE " contains non hex values: \"%s\"", 
+						stream.getOff()-2, std::string(checkStr).c_str())
+				);
+			checkVal = StringUtils::hexStrToUIntLen<uint8_t>(checkStr.data(), 2);
+			checksum += checkVal;
+		}
+		
+		if (checksum != 0)
+			throw std::runtime_error(StringUtils::format("checksum doesnt match (%u) at %" DU_PRIuSIZE, (uint32_t)checksum, stream.getOff()));
+
+		while (stream.hasLeft()) {
+			char c = stream.getByte(false);
+			if (c != '\n' && c != '\r') break;
+			stream.advance(1);
 		}
 	}
 

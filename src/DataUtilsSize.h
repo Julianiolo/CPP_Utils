@@ -8,6 +8,7 @@
 #include <set>
 #include <map>
 
+#include "DataUtils.h"
 #include "ringBuffer.h"
 
 namespace DataUtils {
@@ -19,10 +20,16 @@ namespace DataUtils {
 	inline constexpr size_t approxSizeOf(uint32_t v) { return sizeof(v); };
 	inline constexpr size_t approxSizeOf(int64_t v) { return sizeof(v); };
 	inline constexpr size_t approxSizeOf(uint64_t v) { return sizeof(v); };
+#ifdef __clang__
+	inline constexpr size_t approxSizeOf(size_t v) { return sizeof(v); };
+#endif
 	inline constexpr size_t approxSizeOf(bool v) { return sizeof(v); };
+	inline constexpr size_t approxSizeOf(float v) { return sizeof(v); };
+	inline constexpr size_t approxSizeOf(double v) { return sizeof(v); };
 
 	template<typename T>
 	constexpr size_t approxSizeOf(T* v) {
+		DU_UNUSED(v);
 		return sizeof(T*);
 	}
 	inline size_t approxSizeOf(const std::string& v) {

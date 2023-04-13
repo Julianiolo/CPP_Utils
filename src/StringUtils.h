@@ -85,6 +85,8 @@ namespace StringUtils {
 	constexpr char hexDigitsUpperCase[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 	extern char texBuf[128];
 
+	bool isValidBaseNum(uint8_t base, const char* str, const char* str_end = 0);
+
 	constexpr uint8_t numStrDigitsNeeded(uint64_t num, uint8_t base) {
 		uint8_t cnt = 0;
 		while (num) {
@@ -225,13 +227,13 @@ namespace StringUtils {
 	uint64_t stof(const char* str, const char* str_end, uint8_t exponent_bits = 8, uint8_t fraction_bits = 23, bool atof_compadible = false);
 
 	template<typename T>
-	constexpr std::string vectorToStr(const std::vector<T>& vec) {
+	std::string vectorToStr(const std::vector<T>& vec) {
 		return vectorToStr(vec, [](const T& val){
 			return std::to_string(val);
 		});
 	}
 	template<typename T, typename F>
-	constexpr std::string vectorToStr(const std::vector<T>& vec, F toStrFunc) {
+	std::string vectorToStr(const std::vector<T>& vec, F toStrFunc) {
 		std::string out = "[";
 		for(size_t i = 0; i<vec.size(); i++) {
 			out += toStrFunc(vec[i]);
@@ -246,11 +248,13 @@ namespace StringUtils {
 		IO
 	*/
 
-	std::string loadFileIntoString(const char* path, bool* success = 0);
+	std::string loadFileIntoString(const char* path);
 	bool writeStringToFile(const std::string& str, const char* path);
 
-	std::vector<uint8_t> loadFileIntoByteArray(const char* path, bool* success = 0);
+	std::vector<uint8_t> loadFileIntoByteArray(const char* path);
 	bool writeBytesToFile(const uint8_t* data, size_t dataLen, const char* path);
+
+	bool fileExists(const char* path);
 
 	std::string getDirName(const char* path, const char* path_end = NULL);
 	constexpr const char* getFileName(const char* path, const char* path_end = NULL){
