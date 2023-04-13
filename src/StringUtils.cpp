@@ -121,7 +121,9 @@ std::vector<uint8_t> StringUtils::loadFileIntoByteArray(const char* path, bool* 
 	t.seekg(0, std::ios::beg);
 	byteArr.resize((size_t)size);
 
-	t.read((char*) & byteArr[0], size);
+	if(size > 0)
+		t.read((char*) &byteArr[0], size);
+
 	t.close();
 
 	if (success)
