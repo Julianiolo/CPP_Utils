@@ -10,6 +10,10 @@
 
 #include "DataUtils.h"
 
+#ifdef __EMSCRIPTEN__
+	#include "emscripten.h"
+#endif
+
 char StringUtils::texBuf[128];
 
 bool StringUtils::isValidBaseNum(uint8_t base, const char* str, const char* str_end) {
@@ -123,6 +127,18 @@ std::string StringUtils::stripString_(std::string& str) {
 }
 
 std::string StringUtils::loadFileIntoString(const char* path) {
+#ifdef __EMSCRIPTEN__
+	if(StringUtils::findCharInStr(':',path) != nullptr) {
+		void* data = nullptr;
+		int size = 0;
+		int error = 0;
+		emscripten_wget_data(path, &data, &size, &error);
+		std::string res((size_t)size, ' ');
+		if(size > 0)
+			std::memcpy(&res[0], data, size);
+		return res;
+	}
+#endif
 	std::ifstream t(path, std::ios::binary);
 	
 	if(!t.is_open()){
@@ -135,7 +151,8 @@ std::string StringUtils::loadFileIntoString(const char* path) {
 
 	std::string fileStr((size_t)size, ' ');
 
-	t.read(&fileStr[0], size);
+	if(size > 0)
+		t.read(&fileStr[0], size);
 	t.close();
 	return fileStr;
 }
@@ -148,6 +165,18 @@ bool StringUtils::writeStringToFile(const std::string& str, const char* path) {
 }
 
 std::vector<uint8_t> StringUtils::loadFileIntoByteArray(const char* path) {
+#ifdef __EMSCRIPTEN__
+	if(StringUtils::findCharInStr(':',path) != nullptr) {
+		void* data = nullptr;
+		int size = 0;
+		int error = 0;
+		emscripten_wget_data(path, &data, &size, &error);
+		std::vector<uint8_t> res((size_t)size);
+		if(size > 0)
+			std::memcpy(&res[0], data, size);
+		return res;
+	}
+#endif
 	std::ifstream t(path, std::ios::binary);
 
 	if(!t.is_open()){
