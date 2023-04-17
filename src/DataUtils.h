@@ -14,6 +14,7 @@
 #include <thread>
 #include <stdexcept>
 #include <string_view>
+#include <condition_variable>
 
 // Print size_t macros
 #if SIZE_MAX == 0xffffull

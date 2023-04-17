@@ -189,6 +189,9 @@ bool DataUtils::ByteStream::hasLeft() const {
 }
 
 uint64_t DataUtils::EditMemory::readValue(const uint8_t* data, size_t dataLen, uint8_t editType, uint8_t editEndian) {
+	if(dataLen == 0) {
+		throw std::runtime_error(StringUtils::format("EditMemory: size too small: %" DU_PRIuSIZE, dataLen));
+	}
 	uint64_t res = 0;
 	uint16_t bytesToCopy = 0;
 	switch (editType) {
@@ -211,6 +214,9 @@ uint64_t DataUtils::EditMemory::readValue(const uint8_t* data, size_t dataLen, u
 		
 			for (size_t i = 0; i < bytesToCopy; i++) {
 				size_t offset = editEndian == EditEndian_Big ? (size_t)i : (bytesToCopy - (size_t)i - 1);
+				if(offset >= dataLen) {
+					throw std::runtime_error(StringUtils::format("EditMemory: size too small: %" DU_PRIuSIZE ", requested: %" DU_PRIuSIZE, dataLen, offset));
+				}
 				res <<= 8;
 				res |= data[offset];
 			}
