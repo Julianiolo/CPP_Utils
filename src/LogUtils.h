@@ -20,11 +20,11 @@ namespace LogUtils {
 
 	void activateLogTarget(LogCallB callB, void* userData);
 
-	void _log(uint8_t logLevel, std::pair<LogCallB,void*> context, const char* fileName, int lineNum, const char* module, const char* msg);
-	void _log(uint8_t logLevel, std::pair<LogCallB,void*> context, const char* fileName, int lineNum, const char* module, const std::string& msg);
+	void _log(uint8_t logLevel, std::pair<LogCallB,void*> context, const char* fileName, int lineNum, const char* module, const char* msg) noexcept;
+	void _log(uint8_t logLevel, std::pair<LogCallB,void*> context, const char* fileName, int lineNum, const char* module, const std::string& msg) noexcept;
 
 	template<typename ... Args>
-	void _logf(uint8_t logLevel, std::pair<LogCallB,void*> context, const char* fileName, int lineNum, const char* module, const char* msg, Args ... args) {
+	void _logf(uint8_t logLevel, std::pair<LogCallB,void*> context, const char* fileName, int lineNum, const char* module, const char* msg, Args ... args) noexcept {
 		_log(logLevel, context, fileName, lineNum, module, StringUtils::format(msg, args ...));
 	}
 }
