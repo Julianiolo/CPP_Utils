@@ -14,7 +14,6 @@
 #include <thread>
 #include <stdexcept>
 #include <string_view>
-#include <condition_variable>
 
 // Print size_t macros
 #if SIZE_MAX == 0xffffull
@@ -143,24 +142,6 @@ namespace DataUtils {
 
 	uint64_t simpleHash(uint64_t v);
 
-	// heavily inspired by this: https://stackoverflow.com/a/32593825
-	class ThreadPool {
-	private:
-		bool should_terminate = false;
-		std::mutex queue_mutex;
-		std::condition_variable mutex_condition;
-		std::vector<std::thread> threads;
-		std::queue<std::function<void(void)>> jobs;
-
-		void threadRun();
-	public:
-		void start(uint32_t num_threads = -1);
-		void stop();
-		bool busy();
-		bool running();
-		void addJob(const std::function<void(void)>& job);
-	};
-
 	class ByteStream {
 	public:
 		class NoDataLeftException : public std::runtime_error {
@@ -223,7 +204,7 @@ namespace DataUtils {
 		typedef void (*SetValueCallB)(size_t addr, uint8_t val, void* userData);
 
 		uint64_t readValue(const uint8_t* data, size_t dataLen, size_t editAddr, uint8_t editType, uint8_t editEndian=EditEndian_Little);
-		std::string readString(const uint8_t* data, size_t dataLen, size_t editAddr, uint8_t editType, bool editReversed);
+		std::string readString(const uint8_t* data, size_t dataLen, size_t editAddr, bool editReversed);
 		void writeValue(size_t addr, uint64_t val, const std::string& editStr, SetValueCallB setValueCallB, void* setValueUserData, size_t dataLen, bool editStringTerm, bool editReversed, uint8_t editType, uint8_t editEndian=EditEndian_Little);
 	}
 }

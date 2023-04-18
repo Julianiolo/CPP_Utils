@@ -57,3 +57,69 @@ void SystemUtils::CallProcThread::update() {
     pclose(f);
     f = nullptr;
 }
+
+
+void SystemUtils::ThreadPool::start(uint32_t num_threads) {
+	if (threads.size() != 0) // already running
+		return;
+
+	should_terminate = false;
+
+	if(num_threads == (decltype(num_threads))-1)
+		num_threads = std::thread::hardware_concurrency();
+	threads.resize(num_threads);
+	for (size_t i = 0; i < num_threads; i++) {
+		threads[i] = std::thread([&] {
+			threadRun();
+		});
+	}
+}
+void SystemUtils::ThreadPool::stop() {
+	{
+		std::unique_lock<std::mutex> lock(queue_mutex);
+		should_terminate = true;
+	}
+	mutex_condition.notify_all();
+	for (auto& thread : threads) {
+		thread.join();
+	}
+	threads.clear();
+}
+
+bool SystemUtils::ThreadPool::busy() {
+	bool busy;
+	{
+		std::unique_lock<std::mutex> lock(queue_mutex);
+		busy = !jobs.empty();
+	}
+	return busy;
+}
+bool SystemUtils::ThreadPool::running() {
+	return threads.size() > 0;
+}
+
+void SystemUtils::ThreadPool::addJob(const std::function<void(void)>& job) {
+	{
+		std::unique_lock<std::mutex> lock(queue_mutex);
+		jobs.push(job);
+	}
+	mutex_condition.notify_one();
+}
+
+void SystemUtils::ThreadPool::threadRun() {
+	while (true) {
+		std::function<void(void)> job;
+		{
+			std::unique_lock<std::mutex> lock(queue_mutex);
+			mutex_condition.wait(lock, [this] {
+				return !jobs.empty() || should_terminate;
+			});
+			if (should_terminate) {
+				return;
+			}
+			job = jobs.front();
+			jobs.pop();
+		}
+		job();
+	}
+}

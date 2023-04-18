@@ -21,70 +21,6 @@ uint64_t DataUtils::simpleHash(uint64_t v) {
 	return v;
 }
 
-void DataUtils::ThreadPool::start(uint32_t num_threads) {
-	if (threads.size() != 0) // already running
-		return;
-
-	should_terminate = false;
-
-	if(num_threads == (decltype(num_threads))-1)
-		num_threads = std::thread::hardware_concurrency();
-	threads.resize(num_threads);
-	for (size_t i = 0; i < num_threads; i++) {
-		threads[i] = std::thread([&] {
-			threadRun();
-		});
-	}
-}
-void DataUtils::ThreadPool::stop() {
-	{
-		std::unique_lock<std::mutex> lock(queue_mutex);
-		should_terminate = true;
-	}
-	mutex_condition.notify_all();
-	for (auto& thread : threads) {
-		thread.join();
-	}
-	threads.clear();
-}
-
-bool DataUtils::ThreadPool::busy() {
-	bool busy;
-	{
-		std::unique_lock<std::mutex> lock(queue_mutex);
-		busy = !jobs.empty();
-	}
-	return busy;
-}
-bool DataUtils::ThreadPool::running() {
-	return threads.size() > 0;
-}
-
-void DataUtils::ThreadPool::addJob(const std::function<void(void)>& job) {
-	{
-		std::unique_lock<std::mutex> lock(queue_mutex);
-		jobs.push(job);
-	}
-	mutex_condition.notify_one();
-}
-
-void DataUtils::ThreadPool::threadRun() {
-	while (true) {
-		std::function<void(void)> job;
-		{
-			std::unique_lock<std::mutex> lock(queue_mutex);
-			mutex_condition.wait(lock, [this] {
-				return !jobs.empty() || should_terminate;
-			});
-			if (should_terminate) {
-				return;
-			}
-			job = jobs.front();
-			jobs.pop();
-		}
-		job();
-	}
-}
 DataUtils::ByteStream::NoDataLeftException::NoDataLeftException(size_t off, size_t getAmt, size_t dataLen) : std::runtime_error(StringUtils::format("Trying to get %" DU_PRIuSIZE " Bytes but only %" DU_PRIuSIZE " are left! total: %" DU_PRIuSIZE, getAmt, dataLen-off,dataLen)), 
 off(off), getAmt(getAmt), dataLen(dataLen) 
 {
@@ -224,7 +160,7 @@ uint64_t DataUtils::EditMemory::readValue(const uint8_t* data, size_t dataLen, s
 	return res;
 }
 
-std::string DataUtils::EditMemory::readString(const uint8_t* data, size_t dataLen, size_t editAddr, uint8_t editType, bool editReversed) {
+std::string DataUtils::EditMemory::readString(const uint8_t* data, size_t dataLen, size_t editAddr, bool editReversed) {
 	DU_ASSERTEX(data, "data is null");
 	DU_ASSERTEX(dataLen > 0 && editAddr < dataLen, StringUtils::format("EditMemory: size too small: trying to read at %" DU_PRIuSIZE " of %" DU_PRIuSIZE "bytes", editAddr, dataLen));
 	size_t i = editAddr;
