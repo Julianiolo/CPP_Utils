@@ -72,6 +72,12 @@ inline void __assertion_failed__(const char* file, int line) {
 #define DU_FALLTHROUGH // fall through
 #endif
 
+// https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
+#define DU_HASH(_x_) std::hash<decltype(_x_)>{}(_x_)
+#define DU_HASH_COMB(_h_, _hash_) _h_ ^= (_hash_) + 0x9e3779b9 + (_h_<<6) + (_h_>>2)
+#define DU_HASHC(_h_,_x_) DU_HASH_COMB(_h_,DU_HASH(_x_))
+#define DU_HASHCB(_h_,_x_,_xlen_) DU_HASH_COMB(_h_,DataUtils::hash_bytes<decltype(_h_)>(_x_,_xlen_))
+
 namespace DataUtils {
 	template<typename T,typename CMP>
 	size_t binarySearchExlusive(size_t len, const T& value, CMP compare) {
@@ -141,6 +147,59 @@ namespace DataUtils {
 	}
 
 	uint64_t simpleHash(uint64_t v);
+	// https://stackoverflow.com/questions/34597260/stdhash-value-on-char-value-and-not-on-memory-address
+	template <typename ResultT, ResultT OffsetBasis, ResultT Prime>
+	class basic_fnv1a final {
+		static_assert(std::is_unsigned<ResultT>::value, "need unsigned integer");
+		public:
+		using result_type = ResultT;
+		private:
+		result_type state {};
+		public:
+
+		constexpr basic_fnv1a() noexcept : state (OffsetBasis) {
+
+		}
+
+		constexpr void update(const void *const data, const std::size_t size) noexcept {
+			const auto cdata = static_cast<const unsigned char *>(data);
+			auto acc = this->state_;
+			for (auto i = std::size_t {}; i < size; ++i) {
+				const auto next = std::size_t {cdata[i]};
+				acc = (acc ^ next) * Prime;
+			}
+			this->state_ = acc;
+		}
+
+		constexpr result_type digest() const noexcept {
+			return this->state_;
+		}
+	};
+
+	using fnv1a_32 = basic_fnv1a<std::uint32_t,           UINT32_C(2166136261),      UINT32_C(16777619)>;
+	using fnv1a_64 = basic_fnv1a<std::uint64_t, UINT64_C(14695981039346656037), UINT64_C(1099511628211)>;
+
+	template <std::size_t Bits>
+	struct fnv1a;
+
+	template <>
+	struct fnv1a<32> {
+		using type = fnv1a_32;
+	};
+	template <>
+	struct fnv1a<64>{
+		using type = fnv1a_64;
+	};
+
+	template <std::size_t Bits>
+	using fnv1a_t = typename fnv1a<Bits>::type;
+
+	template<typename T = size_t>
+	constexpr T hash_bytes(const void *const data, const std::size_t size) noexcept {
+		auto hashfn = fnv1a_t<CHAR_BIT * sizeof(T)> {};
+		hashfn.update(data, size);
+		return hashfn.digest();
+	}
 
 	class ByteStream {
 	public:
