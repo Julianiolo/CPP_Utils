@@ -121,9 +121,9 @@ std::pair<const char*, const char*> StringUtils::stripString(const char* str, co
 
 	return {str,str_end};
 }
-std::string StringUtils::stripString_(std::string& str) {
-	auto res = stripString(str.c_str(), str.c_str() + str.size());
-	return std::string(res.first, res.second);
+std::string_view StringUtils::stripString_(const std::string_view& str) {
+	auto res = stripString(str.data(), str.data() + str.size());
+	return std::string_view(res.first, res.second-res.first);
 }
 
 std::string StringUtils::loadFileIntoString(const char* path) {

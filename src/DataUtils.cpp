@@ -61,7 +61,7 @@ uint64_t DataUtils::ByteStream::getInt(size_t numBytes) {
 	return out;
 }
 uint8_t DataUtils::ByteStream::getByte(bool advance) {
-	if (off + 1 > dataLen)
+	if (off >= dataLen)
 		throw NoDataLeftException(off, 1, dataLen);
 
 	uint8_t res = data[off];
@@ -71,6 +71,12 @@ uint8_t DataUtils::ByteStream::getByte(bool advance) {
 
 	return res;
 }
+uint8_t DataUtils::ByteStream::getByteAt(size_t off_) const{
+	if (off_ >= dataLen)
+		throw std::runtime_error(StringUtils::format("Index out of bounds: %" DU_PRIuSIZE " (len: %" DU_PRIuSIZE ")", off_, dataLen));
+	return data[off_];
+}
+
 std::string_view DataUtils::ByteStream::getBytes(size_t amt) {
 	if (off + amt > dataLen)
 		throw NoDataLeftException(off, amt, dataLen);
@@ -86,15 +92,16 @@ void DataUtils::ByteStream::read(uint8_t* dest, size_t amt) {
 	std::memcpy(dest, data + off, amt);
 	off += amt;
 }
-std::string_view DataUtils::ByteStream::readStr() {
+std::string_view DataUtils::ByteStream::readStr(char term, bool stopOnEnd) {
 	const char* start = (const char*)data + off;
 	while (true) {
-		if(off + 1 > dataLen)
+		if(off >= dataLen) {
 			throw NoDataLeftException(off, 1, dataLen);
+		}
 
 		char c = data[off++];
 
-		if (!c) {
+		if (c == term || (stopOnEnd && off >= dataLen)) {
 			const char* end = (const char*)data + off-1;
 			return std::string_view(start, end-start);
 		}

@@ -14,6 +14,7 @@
 #include <thread>
 #include <stdexcept>
 #include <string_view>
+#include <climits>
 
 // Print size_t macros
 #if SIZE_MAX == 0xffffull
@@ -163,16 +164,16 @@ namespace DataUtils {
 
 		constexpr void update(const void *const data, const std::size_t size) noexcept {
 			const auto cdata = static_cast<const unsigned char *>(data);
-			auto acc = this->state_;
+			auto acc = this->state;
 			for (auto i = std::size_t {}; i < size; ++i) {
 				const auto next = std::size_t {cdata[i]};
 				acc = (acc ^ next) * Prime;
 			}
-			this->state_ = acc;
+			this->state = acc;
 		}
 
 		constexpr result_type digest() const noexcept {
-			return this->state_;
+			return this->state;
 		}
 	};
 
@@ -224,9 +225,10 @@ namespace DataUtils {
 
 		uint64_t getInt(size_t numBytes);
 		uint8_t getByte(bool advance = true);
+		uint8_t getByteAt(size_t off) const;
 		std::string_view getBytes(size_t amt);
 		void read(uint8_t* dest, size_t amt);
-		std::string_view readStr();
+		std::string_view readStr(char term = 0, bool stopOnEnd = false);
 
 		void advance(size_t amt);
 		void goTo(size_t offset);
