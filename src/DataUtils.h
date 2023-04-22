@@ -74,9 +74,10 @@ inline void __assertion_failed__(const char* file, int line) {
 
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
 #define DU_HASH(_x_) std::hash<decltype(_x_)>{}(_x_)
-#define DU_HASH_COMB(_h_, _hash_) _h_ ^= (_hash_) + 0x9e3779b9 + (_h_<<6) + (_h_>>2)
-#define DU_HASHC(_h_,_x_) DU_HASH_COMB(_h_,DU_HASH(_x_))
+#define DU_HASH_COMB(_h_, _hash_) (_h_ ^= (_hash_) + 0x9e3779b9 + (_h_<<6) + (_h_>>2))
+#define DU_HASHC(_h_,_x_) DU_HASH_COMB(_h_,(decltype(_h_))DU_HASH(_x_))
 #define DU_HASHCB(_h_,_x_,_xlen_) DU_HASH_COMB(_h_,DataUtils::hash_bytes<decltype(_h_)>(_x_,_xlen_))
+#define DU_HASHCC(_h_,_container_) DU_HASH_COMB(_h_,DataUtils::hash_bytes<decltype(_h_)>((_container_).size()?&_container_[0]:nullptr,(_container_).size()*sizeof((_container_)[0])))
 
 namespace DataUtils {
 	template<typename T,typename CMP>
@@ -163,16 +164,16 @@ namespace DataUtils {
 
 		constexpr void update(const void *const data, const std::size_t size) noexcept {
 			const auto cdata = static_cast<const unsigned char *>(data);
-			auto acc = this->state_;
-			for (auto i = std::size_t {}; i < size; ++i) {
-				const auto next = std::size_t {cdata[i]};
+			auto acc = this->state;
+			for (size_t i = 0; i < size; i++) {
+				const result_type next = cdata[i];
 				acc = (acc ^ next) * Prime;
 			}
-			this->state_ = acc;
+			this->state = acc;
 		}
 
 		constexpr result_type digest() const noexcept {
-			return this->state_;
+			return this->state;
 		}
 	};
 
