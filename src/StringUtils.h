@@ -20,7 +20,7 @@ namespace StringUtils {
 	std::string paddRight(const std::string& s, int paddedLength, char paddWith);
 
 	std::pair<const char*, const char*> stripString(const char* str, const char* str_end = 0);
-	std::string stripString_(std::string& str);
+	std::string_view stripString_(const std::string_view& str);
 
 	template<typename ... Args>
 	std::string format(const char* str, Args ... args) { // https://stackoverflow.com/a/26221725

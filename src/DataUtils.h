@@ -14,6 +14,7 @@
 #include <thread>
 #include <stdexcept>
 #include <string_view>
+#include <climits>
 
 // Print size_t macros
 #if SIZE_MAX == 0xffffull
@@ -225,9 +226,10 @@ namespace DataUtils {
 
 		uint64_t getInt(size_t numBytes);
 		uint8_t getByte(bool advance = true);
+		uint8_t getByteAt(size_t off) const;
 		std::string_view getBytes(size_t amt);
 		void read(uint8_t* dest, size_t amt);
-		std::string_view readStr();
+		std::string_view readStr(char term = 0, bool stopOnEnd = false);
 
 		void advance(size_t amt);
 		void goTo(size_t offset);
