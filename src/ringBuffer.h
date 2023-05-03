@@ -5,6 +5,9 @@
 #include <iterator>
 #include <stdexcept>
 
+#include "StringUtils.h"
+#include "DataUtils.h"
+
 template<typename T>
 class RingBuffer{
 private:
@@ -83,6 +86,12 @@ public:
         data[ptr++] = t;
         ptr %= data.size();
         len = std::min(len+1,data.size());
+    }
+
+    void pop_front(size_t amt = 1) {
+        if(amt > size()) 
+            throw std::runtime_error(StringUtils::format("requested to many pop_front %" DU_PRIuSIZE "/%" DU_PRIuSIZE, amt, size()));
+        len -= amt;
     }
 
     size_t size() const {
