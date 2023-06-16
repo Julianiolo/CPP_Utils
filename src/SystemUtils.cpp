@@ -7,6 +7,13 @@
 #define pclose _pclose
 #endif
 
+double SystemUtils::timestamp() {
+    auto time = std::chrono::system_clock::now().time_since_epoch();
+    double t = std::chrono::duration_cast<std::chrono::seconds>(time).count();
+    t += (double)std::chrono::duration_cast<std::chrono::nanoseconds>(time).count() / 1e+9;
+    return t;
+}
+
 SystemUtils::CallProcThread::CallProcThread(const std::string& cmd) : cmd(cmd), f(nullptr) {
 
 }

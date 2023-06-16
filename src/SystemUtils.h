@@ -11,6 +11,8 @@
 #include <queue>
 
 namespace SystemUtils {
+    double timestamp();
+
     struct CallProcThread {
     private:
         std::string cmd;
