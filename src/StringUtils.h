@@ -55,6 +55,9 @@ namespace StringUtils {
 		return c == ' ' || c == '\n' || c == '\r' || c == '\t';
 	}
 
+	constexpr const char* findCharInStr(char c, const std::string& str) {
+		return findCharInStr(c, str.c_str(), str.c_str() + str.size());
+	}
 	constexpr const char* findCharInStr(char c, const char* str, const char* strEnd = nullptr) {
 		if (strEnd == nullptr)
 			strEnd = str + std::strlen(str);
@@ -63,6 +66,9 @@ namespace StringUtils {
 				return ptr;
 		}
 		return nullptr;
+	}
+	constexpr const char* findCharInStrFromBack(char c, const std::string& str) {
+		return findCharInStrFromBack(c, str.c_str(), str.c_str() + str.size());
 	}
 	constexpr const char* findCharInStrFromBack(char c, const char* str, const char* strEnd = nullptr) {
 		if (strEnd == nullptr)
