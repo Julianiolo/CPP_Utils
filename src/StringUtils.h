@@ -244,6 +244,8 @@ namespace StringUtils {
 		return out;
 	}
 
+	std::vector<std::string> split(const std::string& s, const std::string& delimiter);
+
 	/*
 		IO
 	*/
