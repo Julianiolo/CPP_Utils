@@ -7,6 +7,7 @@
 #include <streambuf>
 #include <exception>
 #include <iostream>
+#include <sstream>
 
 #include "DataUtils.h"
 
@@ -154,14 +155,17 @@ std::string StringUtils::loadFileIntoString(const char* path) {
 		return res;
 	}
 #endif
+
 	std::ifstream t(path, std::ios::binary);
+	t.exceptions(std::ifstream::badbit | std::ifstream::failbit);
 	
-	if(!t.is_open()){
+	if(t.fail()){
 		throw std::runtime_error(StringUtils::format("could not open the file \"%s\"",path));
 	}
 
+#if 0
 	t.seekg(0, std::ios::end);
-	uint64_t size = t.tellg();
+	std::streampos size = t.tellg();
 	t.seekg(0, std::ios::beg);
 
 	std::string fileStr((size_t)size, ' ');
@@ -170,6 +174,11 @@ std::string StringUtils::loadFileIntoString(const char* path) {
 		t.read(&fileStr[0], size);
 	t.close();
 	return fileStr;
+#else
+	std::stringstream str_strm;
+	str_strm << t.rdbuf();
+	return str_strm.str();
+#endif
 }
 
 bool StringUtils::writeStringToFile(const std::string& str, const char* path) {
