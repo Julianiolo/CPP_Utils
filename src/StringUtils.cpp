@@ -217,6 +217,9 @@ std::vector<uint8_t> StringUtils::loadFileIntoByteArray(const char* path) {
 	if(size > 0)
 		t.read((char*) &byteArr[0], size);
 
+	if (!t.good())
+		throw std::runtime_error("stream error");
+
 	t.close();
 
 	return byteArr;
