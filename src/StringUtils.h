@@ -3,13 +3,14 @@
 
 #define STRINGUTILS_STD_COMPLIANT 1
 
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 #include <string>
 #include <memory>
 #include <stdexcept>
 #include <cstring>
 #include <functional>
+#include <algorithm>
 
 namespace StringUtils {
 	/*
