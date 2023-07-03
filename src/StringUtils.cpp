@@ -142,6 +142,16 @@ std::vector<std::string> StringUtils::split(const std::string& s, const std::str
     return res;
 }
 
+void StringUtils::backup_wstr_to_str(char* dest, const wchar_t* src, size_t size) {
+	for (size_t i = 0; i < size; i++) {
+		wchar_t c = src[i];
+		if (c > 127)
+			c = '_';
+		dest[i] = (char)c;
+	}
+}
+
+
 std::string StringUtils::loadFileIntoString(const char* path) {
 #ifdef __EMSCRIPTEN__
 	if(StringUtils::findCharInStr(':',path) != nullptr) {
