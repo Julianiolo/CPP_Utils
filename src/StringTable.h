@@ -4,6 +4,8 @@
 #include <vector>
 #include <cstring>
 
+#include "DataUtils.h"
+
 class StringTable {
 private:
 	std::vector<char> data;
@@ -24,8 +26,9 @@ public:
 	}
 
 	inline size_t addStr(const char* str, const char* str_end = 0, bool nullTerm = true) {
+		DU_ASSERT(str_end == 0 || str_end >= str);
 		if (str_end == 0)
-			str_end = str + strlen(str);
+			str_end = str + std::strlen(str);
 
 		size_t len = str_end - str;
 		size_t totalLen = nullTerm ? len + 1 : len;
