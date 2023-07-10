@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <ctype.h>
+#include <ctime>
 
 #include <fstream>
 #include <streambuf>
@@ -293,7 +294,7 @@ int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, con
 		if (bc >= 'A' && bc <= 'Z')
 			bc += 'a' - 'A';
 
-		if (ac != bc || !a) {
+		if (ac != bc || !ac) {
 			return ac - bc;
 		}
 
@@ -742,6 +743,15 @@ std::string StringUtils::getDirName(const char* path, const char* path_end) {
 	return std::string(lastDiv + 1, path_end);
 }
 
+std::string StringUtils::formatTimestamp(const char* fmt, uint64_t time) {
+	time_t time_ = time;
+	auto tm = std::localtime(&time_);
+	char buf[256];
+	size_t ret = std::strftime(buf, sizeof(buf), fmt, tm);
+	if(ret == 0) return "ERR";
+	return buf;
+}
+
 std::vector<size_t> StringUtils::generateLineIndexArr(const char* str) {
 	std::vector<size_t> lines;
 
@@ -760,6 +770,9 @@ std::vector<size_t> StringUtils::generateLineIndexArr(const char* str) {
 }
 
 
+std::string StringUtils::addThousandsSeperator(const std::string& str, const char* seperator) {
+	return addThousandsSeperator(str.c_str(), str.c_str() + str.size(), seperator);
+}
 
 std::string StringUtils::addThousandsSeperator(const char* str, const char* str_end, const char* seperator) {
 	if (str_end == nullptr)

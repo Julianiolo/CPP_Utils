@@ -305,9 +305,12 @@ namespace StringUtils {
 		Various Utility
 	*/
 
+	std::string formatTimestamp(const char* fmt, uint64_t time);
+
 	std::vector<size_t> generateLineIndexArr(const char* str);
 
 	std::string addThousandsSeperator(const char* str, const char* str_end = 0, const char* seperator = ",");
+	std::string addThousandsSeperator(const std::string& str, const char* seperator = ",");
 
 	std::vector<uint8_t> parseHexFileStr(const char* str, const char* str_end = 0);
 }
