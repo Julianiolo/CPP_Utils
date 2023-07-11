@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #include "StringUtils.h"
 
 #include <cstring>
@@ -745,10 +749,11 @@ std::string StringUtils::getDirName(const char* path, const char* path_end) {
 
 std::string StringUtils::formatTimestamp(const char* fmt, uint64_t time) {
 	time_t time_ = time;
-	auto tm = std::localtime(&time_);
+	auto* tm = std::localtime(&time_);
+	if (tm == nullptr) return "ERR localtime";
 	char buf[256];
 	size_t ret = std::strftime(buf, sizeof(buf), fmt, tm);
-	if(ret == 0) return "ERR";
+	if(ret == 0) return "ERR strftime";
 	return buf;
 }
 
