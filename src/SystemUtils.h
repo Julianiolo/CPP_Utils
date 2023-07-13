@@ -12,6 +12,7 @@
 
 namespace SystemUtils {
     double timestamp();
+    bool revealInFileExplorer(const char* path);
 
     struct CallProcThread {
     private:
@@ -49,6 +50,10 @@ namespace SystemUtils {
 
 		void threadRun();
 	public:
+        ThreadPool();
+        ThreadPool(uint32_t num_threads = -1);
+        ~ThreadPool();
+
 		void start(uint32_t num_threads = -1);
 		void stop();
 		bool busy();
