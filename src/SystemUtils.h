@@ -9,9 +9,17 @@
 #include <condition_variable>
 #include <functional>
 #include <queue>
+#include <chrono> // used for: timestamp
+
 
 namespace SystemUtils {
-    double timestamp();
+    template<typename clock = std::chrono::system_clock>
+    double timestamp(const std::chrono::time_point<clock>& time = clock::now()) {
+        auto tse = time.time_since_epoch();
+        double t = (double)std::chrono::duration_cast<std::chrono::seconds>(tse).count();
+        t += (double)(std::chrono::duration_cast<std::chrono::nanoseconds>(tse).count() % 1000000000) / 1e+9;
+        return t;
+    }
     bool revealInFileExplorer(const char* path);
 
     struct CallProcThread {

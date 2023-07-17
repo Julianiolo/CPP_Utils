@@ -15,13 +15,6 @@
 
 #include "StringUtils.h"
 
-double SystemUtils::timestamp() {
-    auto time = std::chrono::system_clock::now().time_since_epoch();
-    double t = (double)std::chrono::duration_cast<std::chrono::seconds>(time).count();
-    t += (double)std::chrono::duration_cast<std::chrono::nanoseconds>(time).count() / 1e+9;
-    return t;
-}
-
 bool SystemUtils::revealInFileExplorer(const char* path) {
 	std::string parent = StringUtils::getDirName(path);
 	// wtf this is way to hard
