@@ -25,6 +25,11 @@ public:
 
 	}
 
+	inline void clear() {
+		data.clear();
+		currSize = 0;
+	}
+
 	inline size_t addStr(const char* str, const char* str_end = 0, bool nullTerm = true) {
 		DU_ASSERT(str_end == 0 || str_end >= str);
 		if (str_end == 0)
