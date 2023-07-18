@@ -10,12 +10,9 @@
 #include <stdexcept>
 #include <cstring>
 #include <functional>
-<<<<<<< HEAD
 #include <string>
 #include <string_view>
-=======
 #include <algorithm>
->>>>>>> 48ceac326f6cb408612d3d899f311412cf9aa00d
 
 namespace StringUtils {
 	/*

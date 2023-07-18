@@ -34,6 +34,8 @@
     <ClInclude Include="..\..\..\src\bitVector.h" />
     <ClInclude Include="..\..\..\src\DataUtils.h" />
     <ClInclude Include="..\..\..\src\DataUtilsSize.h" />
+    <ClInclude Include="..\..\..\src\imgui\icons.h" />
+    <ClInclude Include="..\..\..\src\imgui\imguiExt.h" />
     <ClInclude Include="..\..\..\src\LogUtils.h" />
     <ClInclude Include="..\..\..\src\ringBuffer.h" />
     <ClInclude Include="..\..\..\src\StreamUtils.h" />
