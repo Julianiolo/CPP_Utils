@@ -2,7 +2,9 @@
 #define __STRING_TABLE_H__
 
 #include <vector>
-#include <string.h>
+#include <cstring>
+
+#include "DataUtils.h"
 
 class StringTable {
 private:
@@ -23,17 +25,21 @@ public:
 
 	}
 
+	inline void clear() {
+		data.clear();
+		currSize = 0;
+	}
+
 	inline size_t addStr(const char* str, const char* str_end = 0, bool nullTerm = true) {
+		DU_ASSERT(str_end == 0 || str_end >= str);
 		if (str_end == 0)
-			str_end = str + strlen(str);
+			str_end = str + std::strlen(str);
 
 		size_t len = str_end - str;
 		size_t totalLen = nullTerm ? len + 1 : len;
 		checkSize(totalLen);
 
-		for (size_t i = 0; i < len; i++) {
-			data[currSize + i] = str[i];
-		}
+		std::memcpy(&data[currSize], str, len);
 
 		if (nullTerm)
 			data[currSize + len] = 0;
@@ -42,6 +48,10 @@ public:
 		currSize += totalLen;
 
 		return off;
+	}
+
+	inline void setChar(size_t off, char c) {
+		data[off] = c;
 	}
 
 	inline const char* getStr(size_t off) const {

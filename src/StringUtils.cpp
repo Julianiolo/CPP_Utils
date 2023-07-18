@@ -1,12 +1,18 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #include "StringUtils.h"
 
 #include <cstring>
 #include <ctype.h>
+#include <ctime>
 
 #include <fstream>
 #include <streambuf>
 #include <exception>
 #include <iostream>
+#include <sstream>
 
 #include "DataUtils.h"
 
@@ -126,6 +132,31 @@ std::string_view StringUtils::stripString_(const std::string_view& str) {
 	return std::string_view(res.first, res.second-res.first);
 }
 
+// https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+std::vector<std::string> StringUtils::split(const std::string& s, const std::string& delimiter) {
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    std::vector<std::string> res;
+
+    while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+        std::string token = s.substr(pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back(token);
+    }
+
+    res.push_back (s.substr(pos_start));
+    return res;
+}
+
+void StringUtils::backup_wstr_to_str(char* dest, const wchar_t* src, size_t size) {
+	for (size_t i = 0; i < size; i++) {
+		wchar_t c = src[i];
+		if (c > 127)
+			c = '_';
+		dest[i] = (char)c;
+	}
+}
+
+
 std::string StringUtils::loadFileIntoString(const char* path) {
 #ifdef __EMSCRIPTEN__
 	if(StringUtils::findCharInStr(':',path) != nullptr) {
@@ -139,14 +170,17 @@ std::string StringUtils::loadFileIntoString(const char* path) {
 		return res;
 	}
 #endif
+
 	std::ifstream t(path, std::ios::binary);
+	t.exceptions(std::ifstream::badbit | std::ifstream::failbit);
 	
-	if(!t.is_open()){
+	if(t.fail()){
 		throw std::runtime_error(StringUtils::format("could not open the file \"%s\"",path));
 	}
 
+#if 0
 	t.seekg(0, std::ios::end);
-	uint64_t size = t.tellg();
+	std::streampos size = t.tellg();
 	t.seekg(0, std::ios::beg);
 
 	std::string fileStr((size_t)size, ' ');
@@ -155,6 +189,11 @@ std::string StringUtils::loadFileIntoString(const char* path) {
 		t.read(&fileStr[0], size);
 	t.close();
 	return fileStr;
+#else
+	std::stringstream str_strm;
+	str_strm << t.rdbuf();
+	return str_strm.str();
+#endif
 }
 
 bool StringUtils::writeStringToFile(const std::string& str, const char* path) {
@@ -192,6 +231,9 @@ std::vector<uint8_t> StringUtils::loadFileIntoByteArray(const char* path) {
 
 	if(size > 0)
 		t.read((char*) &byteArr[0], size);
+
+	if (!t.good())
+		throw std::runtime_error("stream error");
 
 	t.close();
 
@@ -256,7 +298,7 @@ int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, con
 		if (bc >= 'A' && bc <= 'Z')
 			bc += 'a' - 'A';
 
-		if (ac != bc || !a) {
+		if (ac != bc || !ac) {
 			return ac - bc;
 		}
 
@@ -705,6 +747,16 @@ std::string StringUtils::getDirName(const char* path, const char* path_end) {
 	return std::string(lastDiv + 1, path_end);
 }
 
+std::string StringUtils::formatTimestamp(const char* fmt, uint64_t time) {
+	time_t time_ = time;
+	auto* tm = std::localtime(&time_);
+	if (tm == nullptr) return "ERR localtime";
+	char buf[256];
+	size_t ret = std::strftime(buf, sizeof(buf), fmt, tm);
+	if(ret == 0) return "ERR strftime";
+	return buf;
+}
+
 std::vector<size_t> StringUtils::generateLineIndexArr(const char* str) {
 	std::vector<size_t> lines;
 
@@ -723,6 +775,9 @@ std::vector<size_t> StringUtils::generateLineIndexArr(const char* str) {
 }
 
 
+std::string StringUtils::addThousandsSeperator(const std::string& str, const char* seperator) {
+	return addThousandsSeperator(str.c_str(), str.c_str() + str.size(), seperator);
+}
 
 std::string StringUtils::addThousandsSeperator(const char* str, const char* str_end, const char* seperator) {
 	if (str_end == nullptr)

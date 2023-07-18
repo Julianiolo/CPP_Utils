@@ -3,15 +3,19 @@
 
 #define STRINGUTILS_STD_COMPLIANT 1
 
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 #include <string>
 #include <memory>
 #include <stdexcept>
 #include <cstring>
 #include <functional>
+<<<<<<< HEAD
 #include <string>
 #include <string_view>
+=======
+#include <algorithm>
+>>>>>>> 48ceac326f6cb408612d3d899f311412cf9aa00d
 
 namespace StringUtils {
 	/*
@@ -57,6 +61,7 @@ namespace StringUtils {
 		return c == ' ' || c == '\n' || c == '\r' || c == '\t';
 	}
 
+	
 	constexpr const char* findCharInStr(char c, const char* str, const char* strEnd = nullptr) {
 		if (strEnd == nullptr)
 			strEnd = str + std::strlen(str);
@@ -66,6 +71,10 @@ namespace StringUtils {
 		}
 		return nullptr;
 	}
+	inline const char* findCharInStr(char c, const std::string& str) {
+		return findCharInStr(c, str.c_str(), str.c_str() + str.size());
+	}
+
 	constexpr const char* findCharInStrFromBack(char c, const char* str, const char* strEnd = nullptr) {
 		if (strEnd == nullptr)
 			strEnd = str + std::strlen(str);
@@ -74,6 +83,9 @@ namespace StringUtils {
 				return ptr;
 		}
 		return nullptr;
+	}
+	inline const char* findCharInStrFromBack(char c, const std::string& str) {
+		return findCharInStrFromBack(c, str.c_str(), str.c_str() + str.size());
 	}
 	std::vector<std::pair<size_t,std::string>> findStrings(const uint8_t* data, size_t dataLen, size_t minLen = 1);
 
@@ -246,6 +258,10 @@ namespace StringUtils {
 		return out;
 	}
 
+	std::vector<std::string> split(const std::string& s, const std::string& delimiter);
+
+	void backup_wstr_to_str(char* dest, const wchar_t* src, size_t size);
+
 	/*
 		IO
 	*/
@@ -294,9 +310,12 @@ namespace StringUtils {
 		Various Utility
 	*/
 
+	std::string formatTimestamp(const char* fmt, uint64_t time);
+
 	std::vector<size_t> generateLineIndexArr(const char* str);
 
 	std::string addThousandsSeperator(const char* str, const char* str_end = 0, const char* seperator = ",");
+	std::string addThousandsSeperator(const std::string& str, const char* seperator = ",");
 
 	std::vector<uint8_t> parseHexFileStr(const char* str, const char* str_end = 0);
 }

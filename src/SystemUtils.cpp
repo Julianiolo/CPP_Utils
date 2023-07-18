@@ -5,7 +5,26 @@
 #ifdef _WIN32
 #define popen _popen
 #define pclose _pclose
+
+#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
 #endif
+#define NOMINMAX
+#include <windows.h>
+#endif
+
+#include "StringUtils.h"
+
+bool SystemUtils::revealInFileExplorer(const char* path) {
+	std::string parent = StringUtils::getDirName(path);
+	// wtf this is way to hard
+	abort();
+#ifdef _WIN32
+	// https://learn.microsoft.com/de-de/windows/win32/api/shlobj_core/nf-shlobj_core-shopenfolderandselectitems?redirectedfrom=MSDN
+#else
+
+#endif
+}
 
 SystemUtils::CallProcThread::CallProcThread(const std::string& cmd) : cmd(cmd), f(nullptr) {
 
@@ -58,6 +77,15 @@ void SystemUtils::CallProcThread::update() {
     f = nullptr;
 }
 
+SystemUtils::ThreadPool::ThreadPool() {
+	
+}
+SystemUtils::ThreadPool::ThreadPool(uint32_t num_threads) {
+	start(num_threads);
+}
+SystemUtils::ThreadPool::~ThreadPool() {
+	stop();
+}
 
 void SystemUtils::ThreadPool::start(uint32_t num_threads) {
 	if (threads.size() != 0) // already running
@@ -67,11 +95,11 @@ void SystemUtils::ThreadPool::start(uint32_t num_threads) {
 
 	if(num_threads == (decltype(num_threads))-1)
 		num_threads = std::thread::hardware_concurrency();
-	threads.resize(num_threads);
+	threads.reserve(num_threads);
 	for (size_t i = 0; i < num_threads; i++) {
-		threads[i] = std::thread([&] {
+		threads.push_back(std::thread([&] {
 			threadRun();
-		});
+		}));
 	}
 }
 void SystemUtils::ThreadPool::stop() {
