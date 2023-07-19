@@ -216,6 +216,9 @@ namespace StringUtils {
 
 	template<typename T = uint64_t>
 	constexpr T numStrToUInt(const char* str, const char* strEnd = nullptr){
+		if(strEnd == nullptr)
+			strEnd = str + std::strlen(str);
+			
 		// str at least 3 long
 		if (str + 2 < strEnd && str[0] == '0') {
 			switch (str[1]) {
@@ -231,7 +234,7 @@ namespace StringUtils {
 		return numBaseStrToUIntT<10,T>(str, strEnd);
 	}
 
-	void uIntToBinBuf(uint64_t num, uint8_t digits, char* buf);
+	void uIntToBinBuf(uint64_t num, uint8_t digits, char* buf); // buf has to be at least digits+1 big
 	std::string uIntToBinStr(uint64_t num, uint8_t digits);
 
 	// this function ignores any f/l suffixes, as the size of the float is explicitly stated through the bits

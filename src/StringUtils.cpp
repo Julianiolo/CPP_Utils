@@ -151,7 +151,7 @@ void StringUtils::backup_wstr_to_str(char* dest, const wchar_t* src, size_t size
 	for (size_t i = 0; i < size; i++) {
 		wchar_t c = src[i];
 		if (c > 127)
-			c = '_';
+			c = '?';
 		dest[i] = (char)c;
 	}
 }
