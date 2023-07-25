@@ -155,6 +155,14 @@ void StringUtils::backup_wstr_to_str(char* dest, const wchar_t* src, size_t size
 		dest[i] = (char)c;
 	}
 }
+void StringUtils::backup_str_to_wstr(wchar_t* dest, const char* src, size_t size) {
+	for (size_t i = 0; i < size; i++) {
+		char c = src[i];
+		if (c > 127)
+			c = '?';
+		dest[i] = (wchar_t)c;
+	}
+}
 
 
 std::string StringUtils::loadFileIntoString(const char* path) {

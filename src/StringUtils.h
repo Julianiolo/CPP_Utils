@@ -261,6 +261,7 @@ namespace StringUtils {
 	std::vector<std::string> split(const std::string& s, const std::string& delimiter);
 
 	void backup_wstr_to_str(char* dest, const wchar_t* src, size_t size);
+	void backup_str_to_wstr(wchar_t* dest, const char* src, size_t size);
 
 	/*
 		IO
