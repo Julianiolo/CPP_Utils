@@ -203,6 +203,37 @@ namespace DataUtils {
 		return hashfn.digest();
 	}
 
+	template<size_t bytes, typename T = uint64_t, bool LSB = false>
+	T intFromBuf(const void* buf_) {
+		const uint8_t* buf = (const uint8_t*)buf_;
+		T out = 0;
+		if(!LSB) {  // big endian
+			for(size_t i = 0; i<bytes; i++) {
+				out <<= 8;
+				out |= buf[i];
+			}
+		}else { // little endian
+			for(size_t i = 0; i<bytes; i++) {
+				out |= (T)buf[i] << (bytes - i - 1)*8;
+			}
+		}
+		return out;
+	}
+
+	template<size_t bytes, typename T = uint64_t, bool LSB = false>
+	void intToBuf(const T& t, void* buf_) {
+		uint8_t* buf = (uint8_t*)buf_;
+		if(!LSB) {  // big endian
+			for(size_t i = 0; i<bytes; i++) {
+				buf[i] = (uint8_t)(t >> (bytes - i - 1)*8);
+			}
+		}else { // little endian
+			for(size_t i = 0; i<bytes; i++) {
+				buf[i] = (uint8_t)(t >> i*8);
+			}
+		}
+	}
+
 	class ByteStream {
 	public:
 		class NoDataLeftException : public std::runtime_error {
