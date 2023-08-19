@@ -754,6 +754,22 @@ std::string StringUtils::getDirName(const char* path, const char* path_end) {
 
 	return std::string(lastDiv + 1, path_end);
 }
+std::wstring StringUtils::getDirName(const wchar_t* path, const wchar_t* path_end) {
+	if (path_end == 0)
+		path_end = path + wcslen(path);
+
+	while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
+		path_end--;
+
+	const wchar_t* lastSlash = findCharInStrFromBack((wchar_t)'/', path, path_end);
+	const wchar_t* lastBSlash = findCharInStrFromBack((wchar_t)'\\', path, path_end);
+	const wchar_t* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
+
+	if (lastDiv + 1 >= path_end)
+		return std::wstring();
+
+	return std::wstring(lastDiv + 1, path_end);
+}
 
 std::string StringUtils::formatTimestamp(const char* fmt, uint64_t time) {
 	time_t time_ = time;
