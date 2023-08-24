@@ -27,6 +27,7 @@ namespace ImGuiExt {
 	void AddRectToScrollBar(ImGuiWindow* window, ImGuiAxis axis, const ImRect& pos_norm, const ImVec4& col, ImRect scrollRect = {-1,-1,-1,-1});
 	ImGuiLastItemData& GetItem();
 
+    bool ToggleButton(const char* str_id, bool* v, const ImVec2& size = { 0,0 });
 	size_t SelectSwitch(const char* str_id, const char* const * labels, size_t num, size_t selected, const ImVec2& size = { 200,0 });
 	void ImageRect(const Texture2D& tex, float destWidth, float destHeight, const Rectangle& srcRect);
 
@@ -39,6 +40,8 @@ namespace ImGuiExt {
 	void ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin = {0,0}, const ImVec2& uvMax = {1,1}, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col = {0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
 
 	ImVec4 BrightenColor(const ImVec4& col, float f);
+
+    void RightAlignText(const char* str, const char* str_end = 0);
 }
 
 #ifdef IMGUIEXT_IMPLEMENTATION
@@ -165,6 +168,32 @@ ImGuiLastItemData& ImGuiExt::GetItem() {
     return g.LastItemData;
 }
 
+bool ImGuiExt::ToggleButton(const char* str_id, bool* v, const ImVec2& size_arg) {
+    ImVec2 size = ImVec2(size_arg.x != 0 ? size_arg.x : ImGui::CalcTextSize(str_id).x + ImGui::GetStyle().FramePadding.x*2, size_arg.y != 0 ? size_arg.y : ImGui::GetFrameHeight());
+
+    float CurrLineTextBaseOffset = ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset;
+    ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = 0;
+
+    const ImVec2 borderPad = { 1,1 };
+    ImRect rec(ImGui::GetCursorScreenPos() - borderPad, ImGui::GetCursorScreenPos() + size + borderPad);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, {0.5,0.5});
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,ImGui::GetStyle().ItemSpacing.y });
+
+    bool changed = false;
+    if (ImGui::Selectable(str_id, *v, ImGuiSelectableFlags_NoPadWithHalfSpacing, size)) {
+        *v = !*v;
+        changed = true;
+    }
+
+    ImGui::PopStyleVar(2);
+
+    ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = CurrLineTextBaseOffset;
+
+    ImGui::GetWindowDrawList()->AddRect(rec.Min, rec.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Border)));
+
+    return changed;
+}
 size_t ImGuiExt::SelectSwitch(const char* str_id, const char* const * labels, size_t num, size_t selected, const ImVec2& size_arg) {
     ImGui::PushID(str_id);
 
@@ -173,11 +202,11 @@ size_t ImGuiExt::SelectSwitch(const char* str_id, const char* const * labels, si
     ImVec2 avail = ImGui::GetContentRegionAvail();
     ImVec2 size = ImVec2(size_arg.x != 0 ? size_arg.x : avail.x, size_arg.y != 0 ? size_arg.y : ImGui::GetFrameHeight());
 
-    ImVec2 borderPad = { 1,1 };
+    const ImVec2 borderPad = { 1,1 };
     ImRect rec(ImGui::GetCursorScreenPos() - borderPad, ImGui::GetCursorScreenPos() + size + borderPad);
     ImGui::GetWindowDrawList()->AddRectFilled(rec.Min, rec.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ChildBg)));
 
-    //ImGui::A();
+    float CurrLineTextBaseOffset = ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset;
     ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = 0;
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,ImGui::GetStyle().ItemSpacing.y });
@@ -191,10 +220,11 @@ size_t ImGuiExt::SelectSwitch(const char* str_id, const char* const * labels, si
             //changed = true;
         }
     }
-    ImGui::PopStyleVar();
-    ImGui::PopStyleVar();
+    ImGui::PopStyleVar(2);
 
     ImGui::GetWindowDrawList()->AddRect(rec.Min, rec.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Border)));
+
+    ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = CurrLineTextBaseOffset;
 
     ImGui::EndGroup();
 
@@ -350,6 +380,16 @@ void ImGuiExt::ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8
 ImVec4 ImGuiExt::BrightenColor(const ImVec4& col, float f) {
     return {col.x*f, col.y*f, col.z*f, col.w};
 }
+
+void ImGuiExt::RightAlignText(const char* str, const char* str_end) {
+    if (str_end == NULL)
+        str_end = str + strlen(str);
+
+    ImVec2 textSize = ImGui::CalcTextSize(str, str_end);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + std::max(0.0f, ImGui::GetContentRegionAvail().x - textSize.x));
+    ImGui::TextUnformatted(str, str_end);
+}
+
 #endif
 
 #endif

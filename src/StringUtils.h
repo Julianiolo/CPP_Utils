@@ -104,6 +104,12 @@ namespace StringUtils {
 
 	int strcasecmp(const char* a, const char* b, const char* a_end = NULL, const char* b_end = NULL);
 
+	std::string addThousandsSeperator(const char* str, const char* str_end = 0, const char* seperator = ",");
+	std::string addThousandsSeperator(const std::string& str, const char* seperator = ",");
+	void addThousandsSeperatorBuf(char* buf, size_t size, uint64_t num, const char* seperator = ",");
+
+	const char* strcasestr(const char* str, const char* search, const char* str_end = NULL, const char* search_end = NULL);
+
 	/*
 		Conversion functions
 	*/
@@ -303,6 +309,11 @@ namespace StringUtils {
 
 		const CHAR_TYPE* lastSlash = findCharInStrFromBack('/', path, path_end);
 		const CHAR_TYPE* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+
+		if (lastSlash == nullptr && lastBSlash == nullptr) {
+			return path;
+		}
+
 		const CHAR_TYPE* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
 
 		return lastDiv + 1;
@@ -338,9 +349,6 @@ namespace StringUtils {
 	std::string formatTimestamp(const char* fmt, uint64_t time);
 
 	std::vector<size_t> generateLineIndexArr(const char* str);
-
-	std::string addThousandsSeperator(const char* str, const char* str_end = 0, const char* seperator = ",");
-	std::string addThousandsSeperator(const std::string& str, const char* seperator = ",");
 
 	std::vector<uint8_t> parseHexFileStr(const char* str, const char* str_end = 0);
 }

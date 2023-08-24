@@ -122,7 +122,7 @@ bool SystemUtils::ThreadPool::busy() {
 	}
 	return busy;
 }
-bool SystemUtils::ThreadPool::running() {
+bool SystemUtils::ThreadPool::running() const {
 	return threads.size() > 0;
 }
 
@@ -150,4 +150,8 @@ void SystemUtils::ThreadPool::threadRun() {
 		}
 		job();
 	}
+}
+
+bool SystemUtils::ThreadPool::shouldStop() const {
+	return should_terminate;
 }

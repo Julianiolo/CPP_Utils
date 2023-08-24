@@ -65,8 +65,10 @@ namespace SystemUtils {
 		void start(uint32_t num_threads = -1);
 		void stop();
 		bool busy();
-		bool running();
+		bool running() const;
 		void addJob(const std::function<void(void)>& job);
+
+        bool shouldStop() const;
 	};
 }
 

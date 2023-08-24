@@ -147,6 +147,62 @@ std::vector<std::string> StringUtils::split(const std::string& s, const std::str
     return res;
 }
 
+int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, const char* b_end) {
+	if (a_end && b_end && (a_end - a != b_end - b)) {
+		return a_end - a > b_end - b ? 1 : -1;
+	}
+
+	while (true) {
+		if (a == a_end || b == b_end) {
+			if(a_end == 0 && *a == 0)
+				a_end = a;
+			if(b_end == 0 && *b == 0)
+				b_end = b;
+
+			if (a == a_end && b == b_end)
+				return 0;
+
+			return b == b_end ? 1 : -1;
+		}
+
+		char ac = *a;
+		char bc = *b;
+
+		if (ac >= 'A' && ac <= 'Z')
+			ac += 'a' - 'A';
+		if (bc >= 'A' && bc <= 'Z')
+			bc += 'a' - 'A';
+
+		if (ac != bc || !ac) {
+			return ac - bc;
+		}
+
+		a++;
+		b++;
+	}
+
+	return 0;
+}
+
+const char* StringUtils::strcasestr(const char* str, const char* search, const char* str_end, const char* search_end) {
+	if (str_end == NULL)
+		str_end = str + std::strlen(str);
+	if (search_end == NULL)
+		search_end = search + std::strlen(search);
+
+	size_t search_len = search_end - search;
+
+	if (search_len == 0)
+		return str;
+
+	for (const char* s = str; s < str_end-(search_len-1); s++) {
+		if (strcasecmp(s, search, s+search_len, search_end) == 0) {
+			return s;
+		}
+	}
+	return NULL;
+}
+
 void StringUtils::backup_wstr_to_str(char* dest, const wchar_t* src, size_t size) {
 	for (size_t i = 0; i < size; i++) {
 		wchar_t c = src[i];
@@ -278,43 +334,6 @@ std::vector<std::pair<size_t,std::string>> StringUtils::findStrings(const uint8_
 		}
 	}
 	return out;
-}
-
-int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, const char* b_end) {
-	if (a_end && b_end && (a_end - a != b_end - b)) {
-		return a_end - a > b_end - b ? 1 : -1;
-	}
-	
-	while (true) {
-		if (a == a_end || b == b_end) {
-			if(a_end == 0 && *a == 0)
-				a_end = a;
-			if(b_end == 0 && *b == 0)
-				b_end = b;
-
-			if (a == a_end && b == b_end)
-				return 0;
-
-			return b == b_end ? 1 : -1;
-		}
-
-		char ac = *a;
-		char bc = *b;
-
-		if (ac >= 'A' && ac <= 'Z')
-			ac += 'a' - 'A';
-		if (bc >= 'A' && bc <= 'Z')
-			bc += 'a' - 'A';
-
-		if (ac != bc || !ac) {
-			return ac - bc;
-		}
-
-		a++;
-		b++;
-	}
-
-	return 0;
 }
 
 /*
@@ -827,6 +846,65 @@ std::string StringUtils::addThousandsSeperator(const char* str, const char* str_
 	}
 
 	return out;
+}
+
+void StringUtils::addThousandsSeperatorBuf(char* buf, size_t size, uint64_t num, const char* seperator) {
+	char numBuf[256];
+	std::snprintf(numBuf, sizeof(numBuf), "%" PRIu64, num);
+
+	size_t num_len = std::strlen(numBuf);
+
+	size_t sep_len = std::strlen(seperator);
+	if (sep_len == 0) {
+		if (size >= num_len+1) {
+			strcpy(buf, numBuf);
+		}
+		else {
+			goto exit_err;
+		}
+	}
+
+	if ((num_len / 3) * (3+sep_len) + 1 > size) {
+		goto exit_err;
+	}
+
+	{
+		size_t in_off = 0;
+		size_t out_off = 0;
+		if (num_len % 3 != 0) {
+			size_t num_cpy = num_len % 3;
+			std::memcpy(buf, numBuf, num_cpy);
+			in_off += num_cpy;
+			out_off += num_cpy;
+
+			if (num_len > 3) {
+				std::memcpy(buf + out_off, seperator, sep_len);
+				out_off += sep_len;
+			}
+		}
+		
+		while (in_off < num_len) {
+			std::memcpy(buf + out_off, numBuf + in_off, 3);
+			in_off += 3;
+			out_off += 3;
+
+			if (in_off < num_len) {
+				std::memcpy(buf + out_off, seperator, sep_len);
+				out_off += sep_len;
+			}
+		}
+		buf[out_off] = 0;
+	}
+
+	return;
+	
+exit_err:
+	if (size >= 4) {
+		std::strcpy(buf, "ERR");
+	}
+	else {
+		buf[0] = 0;
+	}
 }
 
 std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* str_end) {
