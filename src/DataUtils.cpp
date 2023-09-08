@@ -3,24 +3,6 @@
 
 #include "StringUtils.h"
 
-
-uint64_t DataUtils::simpleHash(uint64_t v) {
-	// TODO: is probably trash
-
-	v ^= 0xFA42FE00;
-
-	v = v << 7 | v >> (64 - 7);
-	v *= 47;
-	v += 2246;
-	v = v << 37 | v >> (64 - 37);
-	v *= 63;
-	v -= 5124723;
-	v = v << 12 | v >> (64 - 12);
-	v *= 123;
-	v -= 219840392;
-	return v;
-}
-
 DataUtils::ByteStream::NoDataLeftException::NoDataLeftException(size_t off, size_t getAmt, size_t dataLen) : std::runtime_error(StringUtils::format("Trying to get %" DU_PRIuSIZE " Bytes but only %" DU_PRIuSIZE " are left! total: %" DU_PRIuSIZE, getAmt, dataLen-off,dataLen)), 
 off(off), getAmt(getAmt), dataLen(dataLen) 
 {

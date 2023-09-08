@@ -97,7 +97,7 @@ void SystemUtils::ThreadPool::start(uint32_t num_threads) {
 		num_threads = std::thread::hardware_concurrency();
 	threads.reserve(num_threads);
 	for (size_t i = 0; i < num_threads; i++) {
-		threads.push_back(std::thread([&] {
+		threads.push_back(std::thread([this] {
 			threadRun();
 		}));
 	}

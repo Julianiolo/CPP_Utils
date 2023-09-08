@@ -36,8 +36,9 @@ namespace ImGuiExt {
 
 	bool InputTextString(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags = 0, const ImVec2& size = { 0,0 });
 
-	void Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col={0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
-	void ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin = {0,0}, const ImVec2& uvMax = {1,1}, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col = {0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
+    void Image(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col={0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
+	void ImageEx(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col={0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
+	void ImageRot90(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin = {0,0}, const ImVec2& uvMax = {1,1}, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col = {0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
 
 	ImVec4 BrightenColor(const ImVec4& col, float f);
 
@@ -303,7 +304,7 @@ bool ImGuiExt::InputTextString(const char* label, const char* hint, std::string*
     );
 }
 
-void ImGuiExt::Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
+void ImGuiExt::Image(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
         return;
@@ -322,7 +323,48 @@ void ImGuiExt::Image(ImTextureID user_texture_id, const ImVec2& size, const ImVe
     if (border_col.w > 0.0f)
         bb.Max += ImVec2(2, 2);
     ImGui::ItemSize(bb);
-    if (!ImGui::ItemAdd(bb, 0))
+    if (!ImGui::ItemAdd(bb, id))
+        return;
+
+    if (border_col.w > 0.0f)
+    {
+        drawList->AddRect(bb.Min, bb.Max, ImGui::GetColorU32(border_col), 0.0f);
+        drawList->AddImage(user_texture_id, 
+            bb.Min + ImVec2( 1, 1), bb.Max - ImVec2(1, 1), 
+            uv0, uv1, 
+            ImGui::GetColorU32(tint_col)
+        );
+    }
+    else
+    {
+        drawList->AddImage(user_texture_id, 
+            bb.Min, bb.Max, 
+            uv0, uv1, 
+            ImGui::GetColorU32(tint_col)
+        );
+    }
+}
+
+void ImGuiExt::ImageEx(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    ImVec2 pos_;
+    if(isinf(pos.x) && isinf(pos.y)){
+        pos_ = window->DC.CursorPos;
+    }else{
+        pos_ = pos;
+    }
+    
+    if(drawList == nullptr)
+        drawList = window->DrawList;
+
+    ImRect bb(pos_, pos_ + size);
+    if (border_col.w > 0.0f)
+        bb.Max += ImVec2(2, 2);
+    ImGui::ItemSize(bb);
+    if (!ImGui::ItemAdd(bb, id))
         return;
 
     if (border_col.w > 0.0f)
@@ -344,7 +386,7 @@ void ImGuiExt::Image(ImTextureID user_texture_id, const ImVec2& size, const ImVe
     }
 }
 
-void ImGuiExt::ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
+void ImGuiExt::ImageRot90(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
     ImVec2 uv0,uv1,uv2,uv3;
 
     switch (rotation) {
@@ -374,7 +416,7 @@ void ImGuiExt::ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8
         break;
     }
 
-    ImGuiExt::Image(user_texture_id, size, uv0, uv1, uv2, uv3, tint_col, border_col, pos, drawList);
+    ImGuiExt::ImageEx(id, user_texture_id, size, uv0, uv1, uv2, uv3, tint_col, border_col, pos, drawList);
 }
 
 ImVec4 ImGuiExt::BrightenColor(const ImVec4& col, float f) {

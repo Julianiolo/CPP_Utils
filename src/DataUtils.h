@@ -115,7 +115,7 @@ namespace DataUtils {
 		return -1;
 	}
 
-	// find value, if not found return where to insert it; compare needs to be a funktion like object with (const T& a, size_t ind_of_b) -> int
+	// find value, if not found return where to insert it; compare needs to be a function like object with (const T& a, size_t ind_of_b) -> int
 	template<typename T,typename CMP>
 	constexpr inline size_t binarySearchInclusive(size_t len, const T& value, CMP compare) {
 		if (len == 0)
@@ -148,7 +148,23 @@ namespace DataUtils {
 		return from;
 	}
 
-	uint64_t simpleHash(uint64_t v);
+	constexpr inline uint64_t simpleHash(uint64_t v){
+		// TODO: is probably trash
+
+		v ^= 0xFA42FE00;
+
+		v = v << 7 | v >> (64 - 7);
+		v *= 47;
+		v += 2246;
+		v = v << 37 | v >> (64 - 37);
+		v *= 63;
+		v -= 5124723;
+		v = v << 12 | v >> (64 - 12);
+		v *= 123;
+		v -= 219840392;
+		return v;
+	}
+
 	// https://stackoverflow.com/questions/34597260/stdhash-value-on-char-value-and-not-on-memory-address
 	template <typename ResultT, ResultT OffsetBasis, ResultT Prime>
 	class basic_fnv1a final {
