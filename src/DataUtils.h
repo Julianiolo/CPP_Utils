@@ -75,7 +75,7 @@ inline void __assertion_failed__(const char* file, int line) {
 
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
 #define DU_HASH(_x_) std::hash<decltype(_x_)>{}(_x_)
-#define DU_HASH_COMB(_h_, _hash_) (_h_ ^= (_hash_) + 0x9e3779b9 + (_h_<<6) + (_h_>>2))
+#define DU_HASH_COMB(_h_, _hash_) ((_h_) ^= (_hash_) + 0x9e3779b9 + ((_h_)<<6) + ((_h_)>>2))
 #define DU_HASHC(_h_,_x_) DU_HASH_COMB(_h_,(decltype(_h_))DU_HASH(_x_))
 #define DU_HASHCB(_h_,_x_,_xlen_) DU_HASH_COMB(_h_,DataUtils::hash_bytes<decltype(_h_)>(_x_,_xlen_))
 #define DU_HASHCC(_h_,_container_) DU_HASH_COMB(_h_,DataUtils::hash_bytes<decltype(_h_)>((_container_).size()?&_container_[0]:nullptr,(_container_).size()*sizeof((_container_)[0])))
@@ -230,7 +230,7 @@ namespace DataUtils {
 			}
 		}else { // little endian
 			for(size_t i = 0; i<bytes; i++) {
-				out |= (T)buf[i] << (bytes - i - 1)*8;
+				out |= (T)buf[i] << i*8;
 			}
 		}
 		return out;

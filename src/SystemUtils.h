@@ -13,6 +13,13 @@
 
 
 namespace SystemUtils {
+    template<typename T1, typename T2>
+    double durationToSecs(const std::chrono::duration<T1, T2>& dur) {
+        double t = (double)std::chrono::duration_cast<std::chrono::seconds>(dur).count();
+        t += (double)(std::chrono::duration_cast<std::chrono::nanoseconds>(dur).count() % 1000000000) / 1e+9;
+        return t;
+    }
+
     template<typename clock = std::chrono::system_clock>
     double timestamp(const std::chrono::time_point<clock>& time = clock::now()) {
         auto tse = time.time_since_epoch();
@@ -21,6 +28,9 @@ namespace SystemUtils {
         return t;
     }
     bool revealInFileExplorer(const char* path);
+
+    std::string getErrorCodeMsg(int errorCode);
+    bool checkHardlinkedTogether(const char* path1, const char* path2);
 
     struct CallProcThread {
     private:

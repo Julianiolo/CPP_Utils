@@ -47,7 +47,7 @@ namespace StreamUtils {
             }else if constexpr(size == 8) {
                 val_ = *(uint64_t*)&val;
             }else{
-                static_assert(sizeof(T) == 0, "no behaviour defined for this size of float");
+                static_assert(sizeof(T) == -1, "no behaviour defined for this size of float");
             }
 
             for(ptrdiff_t i = size-1; i>=0; i--) {
@@ -65,7 +65,7 @@ namespace StreamUtils {
             size_t len = std::strlen(s);
             stream.write(s,len+1);
         }else{
-            static_assert(sizeof(T) == 0, "no behaviour defined for this type");
+            static_assert(sizeof(T) == -1, "no behaviour defined for this type");
         }
 
         if (!stream) {

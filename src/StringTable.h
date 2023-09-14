@@ -6,6 +6,63 @@
 
 #include "DataUtils.h"
 
+
+#if 1
+
+class StringTable {
+private:
+	std::vector<char> data;
+public:
+	typedef size_t str;
+
+	inline StringTable() {
+
+	}
+
+	inline void clear() {
+		data.clear();
+	}
+
+	inline size_t addStr(const char* str, const char* str_end = 0, bool nullTerm = true) {
+		DU_ASSERT(str_end == 0 || str_end >= str);
+		if (str_end == 0)
+			str_end = str + std::strlen(str);
+
+		size_t len = str_end - str;
+		size_t totalLen = nullTerm ? len + 1 : len;
+
+		const size_t currDataLen = data.size();
+		data.resize(currDataLen + totalLen);
+
+		std::memcpy(&data[currDataLen], str, len);
+
+		if (nullTerm)
+			data[currDataLen + len] = 0;
+
+		return currDataLen;
+	}
+
+	inline void setChar(size_t off, char c) {
+		data[off] = c;
+	}
+
+	inline const char* getStr(size_t off) const {
+		return &data[0] + off;
+	}
+
+	inline size_t addTable(const StringTable& table) {
+		const size_t currDataLen = data.size();
+		if (table.data.size() > 0) {
+			data.resize(currDataLen + table.data.size());
+
+			std::memcpy(&data[currDataLen], &table.data[0], table.data.size());
+		}
+
+		return currDataLen;
+	}
+};
+
+#else
 class StringTable {
 private:
 	std::vector<char> data;
@@ -71,5 +128,8 @@ public:
 		return off;
 	}
 };
+
+
+#endif
 
 #endif

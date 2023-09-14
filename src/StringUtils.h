@@ -194,19 +194,19 @@ namespace StringUtils {
 		const char* strPtr = str;
 		while (strPtr != strEnd) {
 			const char c = *strPtr++;
-			uint8_t cNum = -1;
+			uint8_t cNum = (uint8_t)-1;
 			if (c >= '0' && c <= '9')
 				cNum = c - '0';
 			else if (c == ' ')
 				cNum = 0;
 			else
-				if(base > 10) {
+				if constexpr (base > 10) {
 					if (c >= 'A' && c <= 'Z')
 						cNum = c - 'A' + 10;
 					else if (c >= 'a' && c <= 'z')
 						cNum = c - 'a' + 10;
 					else
-						return -1;
+						return (T)-1;
 				}
 			num *= base;
 			num += cNum;

@@ -32,8 +32,8 @@ public:
 
 		void clear();
 
-		Action& addKey(int id);
-		Action& addMouseButton(int id);
+		Action& addKey(int keyId);
+		Action& addMouseButton(int mouseId);
 
 		void setAsDefault();
 		void resetToDefault();

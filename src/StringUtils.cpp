@@ -558,7 +558,7 @@ stof_calc:
 				else {
 					if(digits_HBS < fraction_bits) {
 						uint64_t decimals_cpy = decimals;
-						uint8_t decimalsBinIndFirst1 = -1;
+						uint8_t decimalsBinIndFirst1 = (uint8_t)-1;
 
 						uint64_t decimals_upper_bound = 1;
 						for (size_t i = 0; i < decimals_seq_len; i++) {
