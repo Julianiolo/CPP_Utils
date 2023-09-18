@@ -27,6 +27,7 @@ namespace ImGuiExt {
 	void AddRectToScrollBar(ImGuiWindow* window, ImGuiAxis axis, const ImRect& pos_norm, const ImVec4& col, ImRect scrollRect = {-1,-1,-1,-1});
 	ImGuiLastItemData& GetItem();
 
+    bool ToggleButton(const char* str_id, bool* v, const ImVec2& size = { 0,0 });
 	size_t SelectSwitch(const char* str_id, const char* const * labels, size_t num, size_t selected, const ImVec2& size = { 200,0 });
 	void ImageRect(const Texture2D& tex, float destWidth, float destHeight, const Rectangle& srcRect);
 
@@ -35,10 +36,13 @@ namespace ImGuiExt {
 
 	bool InputTextString(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags = 0, const ImVec2& size = { 0,0 });
 
-	void Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col={0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
-	void ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin = {0,0}, const ImVec2& uvMax = {1,1}, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col = {0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
+    void Image(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col={0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
+	void ImageEx(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col={0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
+	void ImageRot90(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin = {0,0}, const ImVec2& uvMax = {1,1}, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col = {0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
 
 	ImVec4 BrightenColor(const ImVec4& col, float f);
+
+    void RightAlignText(const char* str, const char* str_end = 0);
 }
 
 #ifdef IMGUIEXT_IMPLEMENTATION
@@ -165,6 +169,32 @@ ImGuiLastItemData& ImGuiExt::GetItem() {
     return g.LastItemData;
 }
 
+bool ImGuiExt::ToggleButton(const char* str_id, bool* v, const ImVec2& size_arg) {
+    ImVec2 size = ImVec2(size_arg.x != 0 ? size_arg.x : ImGui::CalcTextSize(str_id).x + ImGui::GetStyle().FramePadding.x*2, size_arg.y != 0 ? size_arg.y : ImGui::GetFrameHeight());
+
+    float CurrLineTextBaseOffset = ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset;
+    ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = 0;
+
+    const ImVec2 borderPad = { 1,1 };
+    ImRect rec(ImGui::GetCursorScreenPos() - borderPad, ImGui::GetCursorScreenPos() + size + borderPad);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, {0.5,0.5});
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,ImGui::GetStyle().ItemSpacing.y });
+
+    bool changed = false;
+    if (ImGui::Selectable(str_id, *v, ImGuiSelectableFlags_NoPadWithHalfSpacing, size)) {
+        *v = !*v;
+        changed = true;
+    }
+
+    ImGui::PopStyleVar(2);
+
+    ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = CurrLineTextBaseOffset;
+
+    ImGui::GetWindowDrawList()->AddRect(rec.Min, rec.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Border)));
+
+    return changed;
+}
 size_t ImGuiExt::SelectSwitch(const char* str_id, const char* const * labels, size_t num, size_t selected, const ImVec2& size_arg) {
     ImGui::PushID(str_id);
 
@@ -173,11 +203,11 @@ size_t ImGuiExt::SelectSwitch(const char* str_id, const char* const * labels, si
     ImVec2 avail = ImGui::GetContentRegionAvail();
     ImVec2 size = ImVec2(size_arg.x != 0 ? size_arg.x : avail.x, size_arg.y != 0 ? size_arg.y : ImGui::GetFrameHeight());
 
-    ImVec2 borderPad = { 1,1 };
+    const ImVec2 borderPad = { 1,1 };
     ImRect rec(ImGui::GetCursorScreenPos() - borderPad, ImGui::GetCursorScreenPos() + size + borderPad);
     ImGui::GetWindowDrawList()->AddRectFilled(rec.Min, rec.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ChildBg)));
 
-    //ImGui::A();
+    float CurrLineTextBaseOffset = ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset;
     ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = 0;
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,ImGui::GetStyle().ItemSpacing.y });
@@ -191,10 +221,11 @@ size_t ImGuiExt::SelectSwitch(const char* str_id, const char* const * labels, si
             //changed = true;
         }
     }
-    ImGui::PopStyleVar();
-    ImGui::PopStyleVar();
+    ImGui::PopStyleVar(2);
 
     ImGui::GetWindowDrawList()->AddRect(rec.Min, rec.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Border)));
+
+    ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = CurrLineTextBaseOffset;
 
     ImGui::EndGroup();
 
@@ -273,7 +304,7 @@ bool ImGuiExt::InputTextString(const char* label, const char* hint, std::string*
     );
 }
 
-void ImGuiExt::Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
+void ImGuiExt::Image(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
         return;
@@ -292,7 +323,48 @@ void ImGuiExt::Image(ImTextureID user_texture_id, const ImVec2& size, const ImVe
     if (border_col.w > 0.0f)
         bb.Max += ImVec2(2, 2);
     ImGui::ItemSize(bb);
-    if (!ImGui::ItemAdd(bb, 0))
+    if (!ImGui::ItemAdd(bb, id))
+        return;
+
+    if (border_col.w > 0.0f)
+    {
+        drawList->AddRect(bb.Min, bb.Max, ImGui::GetColorU32(border_col), 0.0f);
+        drawList->AddImage(user_texture_id, 
+            bb.Min + ImVec2( 1, 1), bb.Max - ImVec2(1, 1), 
+            uv0, uv1, 
+            ImGui::GetColorU32(tint_col)
+        );
+    }
+    else
+    {
+        drawList->AddImage(user_texture_id, 
+            bb.Min, bb.Max, 
+            uv0, uv1, 
+            ImGui::GetColorU32(tint_col)
+        );
+    }
+}
+
+void ImGuiExt::ImageEx(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return;
+
+    ImVec2 pos_;
+    if(isinf(pos.x) && isinf(pos.y)){
+        pos_ = window->DC.CursorPos;
+    }else{
+        pos_ = pos;
+    }
+    
+    if(drawList == nullptr)
+        drawList = window->DrawList;
+
+    ImRect bb(pos_, pos_ + size);
+    if (border_col.w > 0.0f)
+        bb.Max += ImVec2(2, 2);
+    ImGui::ItemSize(bb);
+    if (!ImGui::ItemAdd(bb, id))
         return;
 
     if (border_col.w > 0.0f)
@@ -314,7 +386,7 @@ void ImGuiExt::Image(ImTextureID user_texture_id, const ImVec2& size, const ImVe
     }
 }
 
-void ImGuiExt::ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
+void ImGuiExt::ImageRot90(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
     ImVec2 uv0,uv1,uv2,uv3;
 
     switch (rotation) {
@@ -344,12 +416,22 @@ void ImGuiExt::ImageRot90(ImTextureID user_texture_id, const ImVec2& size, uint8
         break;
     }
 
-    ImGuiExt::Image(user_texture_id, size, uv0, uv1, uv2, uv3, tint_col, border_col, pos, drawList);
+    ImGuiExt::ImageEx(id, user_texture_id, size, uv0, uv1, uv2, uv3, tint_col, border_col, pos, drawList);
 }
 
 ImVec4 ImGuiExt::BrightenColor(const ImVec4& col, float f) {
     return {col.x*f, col.y*f, col.z*f, col.w};
 }
+
+void ImGuiExt::RightAlignText(const char* str, const char* str_end) {
+    if (str_end == NULL)
+        str_end = str + strlen(str);
+
+    ImVec2 textSize = ImGui::CalcTextSize(str, str_end);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + std::max(0.0f, ImGui::GetContentRegionAvail().x - textSize.x));
+    ImGui::TextUnformatted(str, str_end);
+}
+
 #endif
 
 #endif

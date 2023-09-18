@@ -58,11 +58,18 @@ namespace StringUtils {
 		return c == ' ' || c == '\n' || c == '\r' || c == '\t';
 	}
 
-	
-	constexpr const char* findCharInStr(char c, const char* str, const char* strEnd = nullptr) {
+	inline size_t ustrlen(const char* s) {
+		return std::strlen(s);
+	}
+	inline size_t ustrlen(const wchar_t* s) {
+		return std::wcslen(s);
+	}
+
+	template<typename CHAR_TYPE>
+	constexpr const CHAR_TYPE* findCharInStr(CHAR_TYPE c, const CHAR_TYPE* str, const CHAR_TYPE* strEnd = nullptr) {
 		if (strEnd == nullptr)
-			strEnd = str + std::strlen(str);
-		for (const char* ptr = str; ptr < strEnd; ptr++) {
+			strEnd = str + ustrlen(str);
+		for (const CHAR_TYPE* ptr = str; ptr < strEnd; ptr++) {
 			if (*ptr == c)
 				return ptr;
 		}
@@ -71,11 +78,15 @@ namespace StringUtils {
 	inline const char* findCharInStr(char c, const std::string& str) {
 		return findCharInStr(c, str.c_str(), str.c_str() + str.size());
 	}
+	inline const wchar_t* findCharInStr(wchar_t c, const std::wstring& str) {
+		return findCharInStr(c, str.c_str(), str.c_str() + str.size());
+	}
 
-	constexpr const char* findCharInStrFromBack(char c, const char* str, const char* strEnd = nullptr) {
+	template<typename CHAR_TYPE>
+	constexpr const CHAR_TYPE* findCharInStrFromBack(CHAR_TYPE c, const CHAR_TYPE* str, const CHAR_TYPE* strEnd = nullptr) {
 		if (strEnd == nullptr)
-			strEnd = str + std::strlen(str);
-		for (const char* ptr = strEnd-1; ptr >= str; ptr--) {
+			strEnd = str + ustrlen(str);
+		for (const CHAR_TYPE* ptr = strEnd-1; ptr >= str; ptr--) {
 			if (*ptr == c)
 				return ptr;
 		}
@@ -84,9 +95,20 @@ namespace StringUtils {
 	inline const char* findCharInStrFromBack(char c, const std::string& str) {
 		return findCharInStrFromBack(c, str.c_str(), str.c_str() + str.size());
 	}
+	inline const wchar_t* findCharInStrFromBack(wchar_t c, const std::wstring& str) {
+		return findCharInStrFromBack(c, str.c_str(), str.c_str() + str.size());
+	}
+
+
 	std::vector<std::pair<size_t,std::string>> findStrings(const uint8_t* data, size_t dataLen, size_t minLen = 1);
 
 	int strcasecmp(const char* a, const char* b, const char* a_end = NULL, const char* b_end = NULL);
+
+	std::string addThousandsSeperator(const char* str, const char* str_end = 0, const char* seperator = ",");
+	std::string addThousandsSeperator(const std::string& str, const char* seperator = ",");
+	void addThousandsSeperatorBuf(char* buf, size_t size, uint64_t num, const char* seperator = ",");
+
+	const char* strcasestr(const char* str, const char* search, const char* str_end = NULL, const char* search_end = NULL);
 
 	/*
 		Conversion functions
@@ -172,19 +194,19 @@ namespace StringUtils {
 		const char* strPtr = str;
 		while (strPtr != strEnd) {
 			const char c = *strPtr++;
-			uint8_t cNum = -1;
+			uint8_t cNum = (uint8_t)-1;
 			if (c >= '0' && c <= '9')
 				cNum = c - '0';
 			else if (c == ' ')
 				cNum = 0;
 			else
-				if(base > 10) {
+				if constexpr (base > 10) {
 					if (c >= 'A' && c <= 'Z')
 						cNum = c - 'A' + 10;
 					else if (c >= 'a' && c <= 'z')
 						cNum = c - 'a' + 10;
 					else
-						return -1;
+						return (T)-1;
 				}
 			num *= base;
 			num += cNum;
@@ -276,28 +298,41 @@ namespace StringUtils {
 	bool fileExists(const char* path);
 
 	std::string getDirName(const char* path, const char* path_end = NULL);
-	constexpr const char* getFileName(const char* path, const char* path_end = NULL){
+	std::wstring getDirName(const wchar_t* path, const wchar_t* path_end = NULL);
+	template<typename CHAR_TYPE>
+	constexpr const CHAR_TYPE* getFileName(const CHAR_TYPE* path, const CHAR_TYPE* path_end = NULL){
 		if (path_end == 0)
-			path_end = path + strlen(path);
+			path_end = path + ustrlen(path);
 
 		while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
 			path_end--;
 
-		const char* lastSlash = findCharInStrFromBack('/', path, path_end);
-		const char* lastBSlash = findCharInStrFromBack('\\', path, path_end);
-		const char* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
+		const CHAR_TYPE* lastSlash = findCharInStrFromBack('/', path, path_end);
+		const CHAR_TYPE* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+
+		if (lastSlash == nullptr && lastBSlash == nullptr) {
+			return path;
+		}
+
+		const CHAR_TYPE* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
 
 		return lastDiv + 1;
 	}
-	constexpr const char* getFileExtension(const char* path, const char* path_end = NULL){
+	template<typename STRING_TYPE = std::string>
+	constexpr const auto getFileName(const STRING_TYPE& str) {
+		return StringUtils::getFileName(str.c_str(), str.c_str() + str.size());
+	}
+	
+	template<typename CHAR_TYPE>
+	constexpr const CHAR_TYPE* getFileExtension(const CHAR_TYPE* path, const CHAR_TYPE* path_end = NULL){
 		if (path_end == 0)
 			path_end = path + strlen(path);
 
-		const char* lastSlash = findCharInStrFromBack('/', path, path_end);
-		const char* lastBSlash = findCharInStrFromBack('\\', path, path_end);
-		const char* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
+		const CHAR_TYPE* lastSlash = findCharInStrFromBack('/', path, path_end);
+		const CHAR_TYPE* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+		const CHAR_TYPE* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
 
-		const char* lastDot = findCharInStrFromBack('.', path, path_end);
+		const CHAR_TYPE* lastDot = findCharInStrFromBack('.', path, path_end);
 
 		if (lastDot && lastDot > lastDiv) {
 			return lastDot + 1;
@@ -314,9 +349,6 @@ namespace StringUtils {
 	std::string formatTimestamp(const char* fmt, uint64_t time);
 
 	std::vector<size_t> generateLineIndexArr(const char* str);
-
-	std::string addThousandsSeperator(const char* str, const char* str_end = 0, const char* seperator = ",");
-	std::string addThousandsSeperator(const std::string& str, const char* seperator = ",");
 
 	std::vector<uint8_t> parseHexFileStr(const char* str, const char* str_end = 0);
 }

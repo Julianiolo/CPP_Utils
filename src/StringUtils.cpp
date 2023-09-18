@@ -147,6 +147,62 @@ std::vector<std::string> StringUtils::split(const std::string& s, const std::str
     return res;
 }
 
+int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, const char* b_end) {
+	if (a_end && b_end && (a_end - a != b_end - b)) {
+		return a_end - a > b_end - b ? 1 : -1;
+	}
+
+	while (true) {
+		if (a == a_end || b == b_end) {
+			if(a_end == 0 && *a == 0)
+				a_end = a;
+			if(b_end == 0 && *b == 0)
+				b_end = b;
+
+			if (a == a_end && b == b_end)
+				return 0;
+
+			return b == b_end ? 1 : -1;
+		}
+
+		char ac = *a;
+		char bc = *b;
+
+		if (ac >= 'A' && ac <= 'Z')
+			ac += 'a' - 'A';
+		if (bc >= 'A' && bc <= 'Z')
+			bc += 'a' - 'A';
+
+		if (ac != bc || !ac) {
+			return ac - bc;
+		}
+
+		a++;
+		b++;
+	}
+
+	return 0;
+}
+
+const char* StringUtils::strcasestr(const char* str, const char* search, const char* str_end, const char* search_end) {
+	if (str_end == NULL)
+		str_end = str + std::strlen(str);
+	if (search_end == NULL)
+		search_end = search + std::strlen(search);
+
+	size_t search_len = search_end - search;
+
+	if (search_len == 0)
+		return str;
+
+	for (const char* s = str; s < str_end-(search_len-1); s++) {
+		if (strcasecmp(s, search, s+search_len, search_end) == 0) {
+			return s;
+		}
+	}
+	return NULL;
+}
+
 void StringUtils::backup_wstr_to_str(char* dest, const wchar_t* src, size_t size) {
 	for (size_t i = 0; i < size; i++) {
 		wchar_t c = src[i];
@@ -157,7 +213,7 @@ void StringUtils::backup_wstr_to_str(char* dest, const wchar_t* src, size_t size
 }
 void StringUtils::backup_str_to_wstr(wchar_t* dest, const char* src, size_t size) {
 	for (size_t i = 0; i < size; i++) {
-		char c = src[i];
+		uint8_t c = (uint8_t)src[i];
 		if (c > 127)
 			c = '?';
 		dest[i] = (wchar_t)c;
@@ -278,43 +334,6 @@ std::vector<std::pair<size_t,std::string>> StringUtils::findStrings(const uint8_
 		}
 	}
 	return out;
-}
-
-int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, const char* b_end) {
-	if (a_end && b_end && (a_end - a != b_end - b)) {
-		return a_end - a > b_end - b ? 1 : -1;
-	}
-	
-	while (true) {
-		if (a == a_end || b == b_end) {
-			if(a_end == 0 && *a == 0)
-				a_end = a;
-			if(b_end == 0 && *b == 0)
-				b_end = b;
-
-			if (a == a_end && b == b_end)
-				return 0;
-
-			return b == b_end ? 1 : -1;
-		}
-
-		char ac = *a;
-		char bc = *b;
-
-		if (ac >= 'A' && ac <= 'Z')
-			ac += 'a' - 'A';
-		if (bc >= 'A' && bc <= 'Z')
-			bc += 'a' - 'A';
-
-		if (ac != bc || !ac) {
-			return ac - bc;
-		}
-
-		a++;
-		b++;
-	}
-
-	return 0;
 }
 
 /*
@@ -539,7 +558,7 @@ stof_calc:
 				else {
 					if(digits_HBS < fraction_bits) {
 						uint64_t decimals_cpy = decimals;
-						uint8_t decimalsBinIndFirst1 = -1;
+						uint8_t decimalsBinIndFirst1 = (uint8_t)-1;
 
 						uint64_t decimals_upper_bound = 1;
 						for (size_t i = 0; i < decimals_seq_len; i++) {
@@ -754,6 +773,22 @@ std::string StringUtils::getDirName(const char* path, const char* path_end) {
 
 	return std::string(lastDiv + 1, path_end);
 }
+std::wstring StringUtils::getDirName(const wchar_t* path, const wchar_t* path_end) {
+	if (path_end == 0)
+		path_end = path + wcslen(path);
+
+	while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
+		path_end--;
+
+	const wchar_t* lastSlash = findCharInStrFromBack((wchar_t)'/', path, path_end);
+	const wchar_t* lastBSlash = findCharInStrFromBack((wchar_t)'\\', path, path_end);
+	const wchar_t* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
+
+	if (lastDiv + 1 >= path_end)
+		return std::wstring();
+
+	return std::wstring(lastDiv + 1, path_end);
+}
 
 std::string StringUtils::formatTimestamp(const char* fmt, uint64_t time) {
 	time_t time_ = time;
@@ -811,6 +846,65 @@ std::string StringUtils::addThousandsSeperator(const char* str, const char* str_
 	}
 
 	return out;
+}
+
+void StringUtils::addThousandsSeperatorBuf(char* buf, size_t size, uint64_t num, const char* seperator) {
+	char numBuf[256];
+	std::snprintf(numBuf, sizeof(numBuf), "%" PRIu64, num);
+
+	size_t num_len = std::strlen(numBuf);
+
+	size_t sep_len = std::strlen(seperator);
+	if (sep_len == 0) {
+		if (size >= num_len+1) {
+			strcpy(buf, numBuf);
+		}
+		else {
+			goto exit_err;
+		}
+	}
+
+	if ((num_len / 3) * (3+sep_len) + 1 > size) {
+		goto exit_err;
+	}
+
+	{
+		size_t in_off = 0;
+		size_t out_off = 0;
+		if (num_len % 3 != 0) {
+			size_t num_cpy = num_len % 3;
+			std::memcpy(buf, numBuf, num_cpy);
+			in_off += num_cpy;
+			out_off += num_cpy;
+
+			if (num_len > 3) {
+				std::memcpy(buf + out_off, seperator, sep_len);
+				out_off += sep_len;
+			}
+		}
+		
+		while (in_off < num_len) {
+			std::memcpy(buf + out_off, numBuf + in_off, 3);
+			in_off += 3;
+			out_off += 3;
+
+			if (in_off < num_len) {
+				std::memcpy(buf + out_off, seperator, sep_len);
+				out_off += sep_len;
+			}
+		}
+		buf[out_off] = 0;
+	}
+
+	return;
+	
+exit_err:
+	if (size >= 4) {
+		std::strcpy(buf, "ERR");
+	}
+	else {
+		buf[0] = 0;
+	}
 }
 
 std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* str_end) {

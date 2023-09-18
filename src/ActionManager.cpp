@@ -47,14 +47,14 @@ void ActionManager::Action::clear() {
 	parts.clear();
 }
 
-ActionManager::Action& ActionManager::Action::addKey(int id) {
-	Part part = { Part::Type_Key, id };
+ActionManager::Action& ActionManager::Action::addKey(int keyId) {
+	Part part = { Part::Type_Key, keyId };
 	if(std::find(parts.begin(),parts.end(), part) == parts.end())
 		parts.push_back(part);
 	return *this;
 }
-ActionManager::Action& ActionManager::Action::addMouseButton(int id) {
-	parts.push_back({ Part::Type_MouseButton, id });
+ActionManager::Action& ActionManager::Action::addMouseButton(int mouseId) {
+	parts.push_back({ Part::Type_MouseButton, mouseId });
 	return *this;
 }
 

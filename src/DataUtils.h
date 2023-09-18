@@ -107,7 +107,7 @@ inline void __assertion_failed__(const char* file, int line) {
 
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
 #define DU_HASH(_x_) std::hash<decltype(_x_)>{}(_x_)
-#define DU_HASH_COMB(_h_, _hash_) (_h_ ^= (_hash_) + 0x9e3779b9 + (_h_<<6) + (_h_>>2))
+#define DU_HASH_COMB(_h_, _hash_) ((_h_) ^= (_hash_) + 0x9e3779b9 + ((_h_)<<6) + ((_h_)>>2))
 #define DU_HASHC(_h_,_x_) DU_HASH_COMB(_h_,(decltype(_h_))DU_HASH(_x_))
 #define DU_HASHCB(_h_,_x_,_xlen_) DU_HASH_COMB(_h_,DataUtils::hash_bytes<decltype(_h_)>(_x_,_xlen_))
 #define DU_HASHCC(_h_,_container_) DU_HASH_COMB(_h_,DataUtils::hash_bytes<decltype(_h_)>((_container_).size()?&_container_[0]:nullptr,(_container_).size()*sizeof((_container_)[0])))
@@ -147,7 +147,7 @@ namespace DataUtils {
 		return -1;
 	}
 
-	// find value, if not found return where to insert it; compare needs to be a funktion like object with (const T& a, size_t ind_of_b) -> int
+	// find value, if not found return where to insert it; compare needs to be a function like object with (const T& a, size_t ind_of_b) -> int
 	template<typename T,typename CMP>
 	constexpr inline size_t binarySearchInclusive(size_t len, const T& value, CMP compare) {
 		if (len == 0)
@@ -180,7 +180,23 @@ namespace DataUtils {
 		return from;
 	}
 
-	uint64_t simpleHash(uint64_t v);
+	constexpr inline uint64_t simpleHash(uint64_t v){
+		// TODO: is probably trash
+
+		v ^= 0xFA42FE00;
+
+		v = v << 7 | v >> (64 - 7);
+		v *= 47;
+		v += 2246;
+		v = v << 37 | v >> (64 - 37);
+		v *= 63;
+		v -= 5124723;
+		v = v << 12 | v >> (64 - 12);
+		v *= 123;
+		v -= 219840392;
+		return v;
+	}
+
 	// https://stackoverflow.com/questions/34597260/stdhash-value-on-char-value-and-not-on-memory-address
 	template <typename ResultT, ResultT OffsetBasis, ResultT Prime>
 	class basic_fnv1a final {
@@ -233,6 +249,37 @@ namespace DataUtils {
 		auto hashfn = fnv1a_t<CHAR_BIT * sizeof(T)> {};
 		hashfn.update(data, size);
 		return hashfn.digest();
+	}
+
+	template<size_t bytes, typename T = uint64_t, bool LSB = false>
+	T intFromBuf(const void* buf_) {
+		const uint8_t* buf = (const uint8_t*)buf_;
+		T out = 0;
+		if(!LSB) {  // big endian
+			for(size_t i = 0; i<bytes; i++) {
+				out <<= 8;
+				out |= buf[i];
+			}
+		}else { // little endian
+			for(size_t i = 0; i<bytes; i++) {
+				out |= (T)buf[i] << i*8;
+			}
+		}
+		return out;
+	}
+
+	template<size_t bytes, typename T = uint64_t, bool LSB = false>
+	void intToBuf(const T& t, void* buf_) {
+		uint8_t* buf = (uint8_t*)buf_;
+		if(!LSB) {  // big endian
+			for(size_t i = 0; i<bytes; i++) {
+				buf[i] = (uint8_t)(t >> (bytes - i - 1)*8);
+			}
+		}else { // little endian
+			for(size_t i = 0; i<bytes; i++) {
+				buf[i] = (uint8_t)(t >> i*8);
+			}
+		}
 	}
 
 	class ByteStream {

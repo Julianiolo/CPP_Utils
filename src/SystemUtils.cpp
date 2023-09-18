@@ -26,6 +26,56 @@ bool SystemUtils::revealInFileExplorer(const char* path) {
 #endif
 }
 
+std::string SystemUtils::getErrorCodeMsg(int errorCode) {
+	std::string errMsg;
+#if !__DUMPER_USE_STAT__
+	// https://stackoverflow.com/questions/1387064/how-to-get-the-error-message-from-the-error-code-returned-by-getlasterror
+	LPSTR messageBuffer = nullptr;
+
+	//Ask Win32 to give us the string version of that message ID.
+	//The parameters we pass in, tell Win32 to create the buffer that holds the message for us (because we don't yet know how long the message string will be).
+	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+	//Copy the error message into a std::string.
+	errMsg = std::string(messageBuffer, size);
+
+	//Free the Win32's string's buffer.
+	LocalFree(messageBuffer);
+#else
+	errMsg = strerror(errorCode);
+#endif
+
+	return errMsg;
+}
+
+bool SystemUtils::checkHardlinkedTogether(const char* pathA, const char* pathB) {
+#ifdef _WIN32
+	constexpr auto getFileID = [](const char* path, FILE_ID_INFO* id) {
+		HANDLE f_handle = CreateFileA(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OPEN_REPARSE_POINT, NULL);
+		if (f_handle == INVALID_HANDLE_VALUE) {
+			return GetLastError();
+		}else{
+			if (GetFileInformationByHandleEx(f_handle, FileIdInfo, id, sizeof(*id)) == 0) {
+				return GetLastError();
+			}
+			CloseHandle(f_handle);
+		}
+		return (DWORD)0;
+	};
+
+	DWORD res;
+
+	FILE_ID_INFO fileInfoA;
+	if ((res = getFileID(pathA, &fileInfoA)) != 0) throw std::runtime_error(getErrorCodeMsg(res));
+	FILE_ID_INFO fileInfoB;
+	if ((res = getFileID(pathB, &fileInfoB)) != 0) throw std::runtime_error(getErrorCodeMsg(res));
+
+	return (fileInfoA.VolumeSerialNumber == fileInfoB.VolumeSerialNumber) && std::memcmp(fileInfoA.FileId.Identifier, fileInfoB.FileId.Identifier, sizeof(fileInfoA.FileId.Identifier)) == 0;
+#endif
+	abort();
+}
+
 SystemUtils::CallProcThread::CallProcThread(const std::string& cmd) : cmd(cmd), f(nullptr) {
 
 }
@@ -97,7 +147,7 @@ void SystemUtils::ThreadPool::start(uint32_t num_threads) {
 		num_threads = std::thread::hardware_concurrency();
 	threads.reserve(num_threads);
 	for (size_t i = 0; i < num_threads; i++) {
-		threads.push_back(std::thread([&] {
+		threads.push_back(std::thread([this] {
 			threadRun();
 		}));
 	}
@@ -122,7 +172,7 @@ bool SystemUtils::ThreadPool::busy() {
 	}
 	return busy;
 }
-bool SystemUtils::ThreadPool::running() {
+bool SystemUtils::ThreadPool::running() const {
 	return threads.size() > 0;
 }
 
@@ -150,4 +200,8 @@ void SystemUtils::ThreadPool::threadRun() {
 		}
 		job();
 	}
+}
+
+bool SystemUtils::ThreadPool::shouldStop() const {
+	return should_terminate;
 }
