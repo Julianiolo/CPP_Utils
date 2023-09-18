@@ -73,6 +73,38 @@ inline void __assertion_failed__(const char* file, int line) {
 #define DU_FALLTHROUGH // fall through
 #endif
 
+#define DU_USE_PREDICTION_INDICATORS 1
+
+#if DU_USE_PREDICTION_INDICATORS
+#if __cplusplus >= 202002L
+#define DU_LIKELY [[likely]]
+#define DU_UNLIKELY [[unlikely]]
+
+#define DU_CLIKELY(_x_) _x_
+#define DU_CUNLIKELY(_x_) _x_
+#else
+#define DU_LIKELY
+#define DU_UNLIKELY
+
+#if defined(__GNUC__) || defined(__CLANG__)
+#define DU_CLIKELY(_x_) __builtin_expect(_x_, 1)
+#define DU_CUNLIKELY(_x_) __builtin_expect(_x_, 0)
+#else
+#define DU_CLIKELY(_x_) _x_
+#define DU_CUNLIKELY(_x_) _x_
+#endif
+#endif
+#else
+#define DU_LIKELY
+#define DU_UNLIKELY
+#define DU_CLIKELY(_x_) _x_
+#define DU_CUNLIKELY(_x_) _x_
+#endif
+
+#define DU_IF_LIKELY(_x_) if(DU_CLIKELY(_x_)) DU_LIKELY
+#define DU_IF_UNLIKELY(_x_) if(DU_CUNLIKELY(_x_)) DU_UNLIKELY
+
+
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
 #define DU_HASH(_x_) std::hash<decltype(_x_)>{}(_x_)
 #define DU_HASH_COMB(_h_, _hash_) (_h_ ^= (_hash_) + 0x9e3779b9 + (_h_<<6) + (_h_>>2))
