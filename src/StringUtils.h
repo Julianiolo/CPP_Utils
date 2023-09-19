@@ -304,11 +304,11 @@ namespace StringUtils {
 		if (path_end == 0)
 			path_end = path + ustrlen(path);
 
-		while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
+		while(path+1 <= path_end && (*(path_end-1) == (CHAR_TYPE)'/' || *(path_end-1) == (CHAR_TYPE)'\\'))
 			path_end--;
 
-		const CHAR_TYPE* lastSlash = findCharInStrFromBack('/', path, path_end);
-		const CHAR_TYPE* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+		const CHAR_TYPE* lastSlash = findCharInStrFromBack((CHAR_TYPE)'/', path, path_end);
+		const CHAR_TYPE* lastBSlash = findCharInStrFromBack((CHAR_TYPE)'\\', path, path_end);
 
 		if (lastSlash == nullptr && lastBSlash == nullptr) {
 			return path;
@@ -318,10 +318,9 @@ namespace StringUtils {
 
 		return lastDiv + 1;
 	}
-	template<typename STRING_TYPE = std::string>
-	constexpr const auto getFileName(const STRING_TYPE& str) {
-		return StringUtils::getFileName(str.c_str(), str.c_str() + str.size());
-	}
+	
+	const char* getFileName(const std::string& str);
+	const wchar_t* getFileName(const std::wstring& str);
 	
 	template<typename CHAR_TYPE>
 	constexpr const CHAR_TYPE* getFileExtension(const CHAR_TYPE* path, const CHAR_TYPE* path_end = NULL){

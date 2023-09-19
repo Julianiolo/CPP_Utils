@@ -28,7 +28,7 @@ bool SystemUtils::revealInFileExplorer(const char* path) {
 
 std::string SystemUtils::getErrorCodeMsg(int errorCode) {
 	std::string errMsg;
-#if !__DUMPER_USE_STAT__
+#ifdef _WIN32
 	// https://stackoverflow.com/questions/1387064/how-to-get-the-error-message-from-the-error-code-returned-by-getlasterror
 	LPSTR messageBuffer = nullptr;
 
