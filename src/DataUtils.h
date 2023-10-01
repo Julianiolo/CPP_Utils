@@ -169,11 +169,11 @@ namespace DataUtils {
 	template <typename ResultT, ResultT OffsetBasis, ResultT Prime>
 	class basic_fnv1a final {
 		static_assert(std::is_unsigned<ResultT>::value, "need unsigned integer");
-		public:
+	public:
 		using result_type = ResultT;
-		private:
+	private:
 		result_type state {};
-		public:
+	public:
 
 		constexpr basic_fnv1a() noexcept : state (OffsetBasis) {
 
@@ -249,6 +249,16 @@ namespace DataUtils {
 			}
 		}
 	}
+
+	template<typename T, typename Mutex>
+	class ThreadSafeAccessor {
+	protected:
+		std::unique_lock<Mutex> lock;
+		T& val;
+	public:
+		inline ThreadSafeAccessor(T& val, Mutex& mutex) : lock(mutex), val(val) {}
+		T& get() { return val };
+	};
 
 	class ByteStream {
 	public:

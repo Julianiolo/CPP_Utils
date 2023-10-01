@@ -28,7 +28,7 @@ bool SystemUtils::revealInFileExplorer(const char* path) {
 
 std::string SystemUtils::getErrorCodeMsg(int errorCode) {
 	std::string errMsg;
-#if !__DUMPER_USE_STAT__
+#if defined(_WIN32)
 	// https://stackoverflow.com/questions/1387064/how-to-get-the-error-message-from-the-error-code-returned-by-getlasterror
 	LPSTR messageBuffer = nullptr;
 
@@ -72,9 +72,20 @@ bool SystemUtils::checkHardlinkedTogether(const char* pathA, const char* pathB) 
 	if ((res = getFileID(pathB, &fileInfoB)) != 0) throw std::runtime_error(getErrorCodeMsg(res));
 
 	return (fileInfoA.VolumeSerialNumber == fileInfoB.VolumeSerialNumber) && std::memcmp(fileInfoA.FileId.Identifier, fileInfoB.FileId.Identifier, sizeof(fileInfoA.FileId.Identifier)) == 0;
+#elif defined(__unix__) || defined(__APPLE__)
+	int res;
+
+	struct stat stA;
+	if((res = lstat(entry_path, &stA)) != 0) throw std::runtime_error(strerror(res));
+	struct stat stB;
+	if((res = lstat(entry_path, &stB)) != 0) throw std::runtime_error(strerror(res));
+
+	return (stA.st_ino == stB.st_ino) && (stA.st_dev == stB.st_dev);
 #endif
 	abort();
 }
+
+
 
 SystemUtils::CallProcThread::CallProcThread(const std::string& cmd) : cmd(cmd), f(nullptr) {
 
