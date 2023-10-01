@@ -124,10 +124,10 @@ void SystemUtils::fileModeToStr(char* buf, uint32_t mode) {
 	// https://linux.die.net/man/2/chmod
 	// https://stackoverflow.com/questions/10323060/printing-file-permissions-like-ls-l-using-stat2-in-c
 
-	constexpr uint32_t S_UID = 0x4000, S_GID = 0x2000, S_VTX = 0x1000;
-	constexpr uint32_t R_USR = 0x0400, W_USR = 0x0200, X_USR = 0x0100;
-	constexpr uint32_t R_GRP = 0x0040, W_GRP = 0x0020, X_GRP = 0x0010;
-	constexpr uint32_t R_OTH = 0x0004, W_OTH = 0x0002, X_OTH = 0x0001;
+	constexpr uint32_t S_UID = 4 << 9, S_GID = 2 << 9, S_VTX = 1 << 9;
+	constexpr uint32_t R_USR = 4 << 6, W_USR = 2 << 6, X_USR = 1 << 6;
+	constexpr uint32_t R_GRP = 4 << 3, W_GRP = 2 << 3, X_GRP = 1 << 3;
+	constexpr uint32_t R_OTH = 4 << 0, W_OTH = 2 << 0, X_OTH = 1 << 0;
 
 	buf[0] = fileTypeModeToLetter(mode);
 
