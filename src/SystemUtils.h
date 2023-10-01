@@ -32,6 +32,10 @@ namespace SystemUtils {
     std::string getErrorCodeMsg(int errorCode);
     bool checkHardlinkedTogether(const char* path1, const char* path2);
 
+    // for unix
+    char fileTypeModeToLetter(uint32_t mode);
+    void fileModeToStr(char* buf, uint32_t mode); // buffer needs to be AT LEAST 11 bytes big
+
     struct CallProcThread {
     private:
         std::string cmd;
