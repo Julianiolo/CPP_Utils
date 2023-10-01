@@ -289,7 +289,7 @@ namespace DataUtils {
 		T& val;
 	public:
 		inline ThreadSafeAccessor(T& val, Mutex& mutex) : lock(mutex), val(val) {}
-		T& get() { return val };
+		T& get() { return val; };
 	};
 
 	class ByteStream {

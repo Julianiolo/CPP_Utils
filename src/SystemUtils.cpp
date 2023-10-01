@@ -11,6 +11,10 @@
 #endif
 #define NOMINMAX
 #include <windows.h>
+#else
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 #include "StringUtils.h"
@@ -76,9 +80,9 @@ bool SystemUtils::checkHardlinkedTogether(const char* pathA, const char* pathB) 
 	int res;
 
 	struct stat stA;
-	if((res = lstat(entry_path, &stA)) != 0) throw std::runtime_error(strerror(res));
+	if((res = lstat(pathA, &stA)) != 0) throw std::runtime_error(strerror(res));
 	struct stat stB;
-	if((res = lstat(entry_path, &stB)) != 0) throw std::runtime_error(strerror(res));
+	if((res = lstat(pathB, &stB)) != 0) throw std::runtime_error(strerror(res));
 
 	return (stA.st_ino == stB.st_ino) && (stA.st_dev == stB.st_dev);
 #endif
