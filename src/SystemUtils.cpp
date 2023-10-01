@@ -86,6 +86,77 @@ bool SystemUtils::checkHardlinkedTogether(const char* pathA, const char* pathB) 
 }
 
 
+char SystemUtils::fileTypeModeToLetter(uint32_t mode) {
+	// https://linux.die.net/man/2/stat
+	// https://stackoverflow.com/questions/10323060/printing-file-permissions-like-ls-l-using-stat2-in-c
+
+	switch (mode & S_IFMT) {
+		// TODO: how does that correlate to EntType_DEV
+#ifdef S_IFBLK
+		case S_IFBLK:  return 'b';
+#endif
+		case S_IFCHR:  return 'c';
+
+#ifdef S_IFIFO
+		case S_IFIFO:  return 'p';
+#endif
+#ifdef S_IFSOCK
+		case S_IFSOCK: return 's';
+#endif
+#ifdef S_IFDOOR
+		case S_IFDOOR: return 'D';
+#endif
+
+		case S_IFDIR:  return 'd';
+#ifdef S_IFLNK
+		case S_IFLNK:  return 'l';
+#endif
+		case S_IFREG:  return '-';
+		default:       return '?';
+	}
+}
+
+void SystemUtils::fileModeToStr(char* buf, uint32_t mode) {
+	// https://linux.die.net/man/2/chmod
+	// https://stackoverflow.com/questions/10323060/printing-file-permissions-like-ls-l-using-stat2-in-c
+
+	constexpr uint32_t S_UID = 0x4000, S_GID = 0x2000, S_VTX = 0x1000;
+	constexpr uint32_t R_USR = 0x0400, W_USR = 0x0200, X_USR = 0x0100;
+	constexpr uint32_t R_GRP = 0x0040, W_GRP = 0x0020, X_GRP = 0x0010;
+	constexpr uint32_t R_OTH = 0x0004, W_OTH = 0x0002, X_OTH = 0x0001;
+
+	buf[0] = fileTypeModeToLetter(mode);
+
+	buf[1] = (mode & R_USR) ? 'r' : '_';
+	buf[2] = (mode & W_USR) ? 'w' : '_';
+	if (!(mode & S_UID)) {
+		buf[3] = (mode & X_USR) ? 'x' : '_';
+	}
+	else {
+		buf[3] = (mode & X_USR) ? 's' : 'S';
+	}
+
+	buf[4] = (mode & R_GRP) ? 'r' : '_';
+	buf[5] = (mode & W_GRP) ? 'w' : '_';
+	if (!(mode & S_GID)) {
+		buf[6] = (mode & X_GRP) ? 'x' : '_';
+	}
+	else {
+		buf[6] = (mode & X_GRP) ? 's' : 'l';
+	}
+
+	buf[7] = (mode & R_OTH) ? 'r' : '_';
+	buf[8] = (mode & W_OTH) ? 'w' : '_';
+	if (!(mode & S_VTX)) {
+		buf[9] = (mode & X_OTH) ? 'x' : '_';
+	}
+	else {
+		buf[9] = (mode & X_OTH) ? 't' : 'T';
+	}
+
+	buf[10] = '\0';
+}
+
 
 SystemUtils::CallProcThread::CallProcThread(const std::string& cmd) : cmd(cmd), f(nullptr) {
 
