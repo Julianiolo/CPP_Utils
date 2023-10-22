@@ -60,6 +60,10 @@ public:
 
 		return currDataLen;
 	}
+
+	inline void shrinkToFit() {
+		data.shrink_to_fit();
+	}
 };
 
 #else
