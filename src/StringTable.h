@@ -64,6 +64,10 @@ public:
 	inline void shrinkToFit() {
 		data.shrink_to_fit();
 	}
+
+	inline void reserve(size_t amt) {
+		data.reserve(amt);
+	}
 };
 
 #else

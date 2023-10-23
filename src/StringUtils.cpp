@@ -22,6 +22,33 @@
 
 char StringUtils::texBuf[128];
 
+std::string StringUtils::replace(const char* str, const char* old, const char* val) {
+	const size_t strLen = std::strlen(str);
+	const size_t oldLen = std::strlen(old);
+	const size_t valLen = std::strlen(val);
+
+	const char* ptr = str;
+	std::string out;
+	while (true) {
+		const char* sub = std::strstr(ptr, old);
+
+		if (sub == nullptr)
+			break;
+
+		out += std::string_view(ptr, sub - ptr);
+		out += val;
+
+		ptr = sub + oldLen;
+		if (ptr >= str + strLen)
+			break;
+	}
+
+	if (ptr < str + strLen)
+		out += std::string_view(ptr, (str+strLen) - ptr);
+
+	return out;
+}
+
 bool StringUtils::isValidBaseNum(uint8_t base, const char* str, const char* str_end) {
 	if (str_end == 0)
 		str_end = str + std::strlen(str);
