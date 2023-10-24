@@ -22,29 +22,35 @@
 
 char StringUtils::texBuf[128];
 
-std::string StringUtils::replace(const char* str, const char* old, const char* val) {
-	const size_t strLen = std::strlen(str);
+std::string StringUtils::replace(const char* str, const char* old, const char* val, const char* str_end) {
+	if(str_end == NULL)
+		str_end = str + std::strlen(str);
+
+	DU_ASSERT(str_end >= str);
+
+	const size_t strLen = str_end-str;
 	const size_t oldLen = std::strlen(old);
 	const size_t valLen = std::strlen(val);
 
-	const char* ptr = str;
-	std::string out;
-	while (true) {
-		const char* sub = std::strstr(ptr, old);
+	DU_ASSERT(oldLen > 0);
 
-		if (sub == nullptr)
+	const std::string_view sw(str, strLen);
+
+	size_t ptr = 0;
+	std::string out;
+	do {
+		size_t off = sw.find(old, strLen-ptr);
+		if (off == std::string_view::npos)
 			break;
 
-		out += std::string_view(ptr, sub - ptr);
+		out += sw.substr(ptr, off-ptr);
 		out += val;
 
-		ptr = sub + oldLen;
-		if (ptr >= str + strLen)
-			break;
-	}
+		ptr = off + oldLen;
+	} while(ptr < strLen);
 
-	if (ptr < str + strLen)
-		out += std::string_view(ptr, (str+strLen) - ptr);
+	if (ptr < strLen)
+		out += sw.substr(ptr, strLen-ptr);
 
 	return out;
 }
