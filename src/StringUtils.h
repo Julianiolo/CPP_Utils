@@ -25,7 +25,7 @@ namespace StringUtils {
 	std::pair<const char*, const char*> stripString(const char* str, const char* str_end = 0);
 	std::string_view stripString_(const std::string_view& str);
 
-	std::string replace(const char* str, const char* old, const char* val);
+	std::string replace(const char* str, const char* old, const char* val, const char* str_end = 0);
 
 	template<typename ... Args>
 	std::string format(const char* str, Args ... args) { // https://stackoverflow.com/a/26221725
