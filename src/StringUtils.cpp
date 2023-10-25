@@ -49,6 +49,125 @@ std::string StringUtils::replace(const char* str, const char* old, const char* v
 	return out;
 }
 
+
+std::string StringUtils::paddLeft(const std::string& s, size_t length, char padd) {//https://stackoverflow.com/a/667236
+	std::string out = s;
+	out.insert(out.begin(), length - out.size(), padd);
+	return out;
+}
+std::string StringUtils::paddRight(const std::string& s, size_t length, char padd) {//https://stackoverflow.com/a/667236
+	std::string out = s;
+	out.insert(out.end(), length - out.size(), padd);
+	return out;
+}
+
+std::pair<const char*, const char*> StringUtils::stripString(const char* str, const char* str_end) {
+	if (str_end == NULL)
+		str_end = str + std::strlen(str);
+
+	char c;
+	while (str < str_end && ((c = *str) == ' ' || c == '\n' || c == '\r' || c == '\t'))
+		str++;
+
+	while (str_end > str+1 && ((c = *(str_end-1)) == ' ' || c == '\n' || c == '\r' || c == '\t'))
+		str_end--;
+
+	return {str,str_end};
+}
+std::string_view StringUtils::stripString_(const std::string_view& str) {
+	auto res = stripString(str.data(), str.data() + str.size());
+	return std::string_view(res.first, res.second-res.first);
+}
+
+// https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
+std::vector<std::string> StringUtils::split(const std::string& s, const std::string& delimiter) {
+	size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+	std::vector<std::string> res;
+
+	while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+		std::string token = s.substr(pos_start, pos_end - pos_start);
+		pos_start = pos_end + delim_len;
+		res.push_back(token);
+	}
+
+	res.push_back (s.substr(pos_start));
+	return res;
+}
+
+int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, const char* b_end) {
+	if (a_end && b_end && (a_end - a != b_end - b)) {
+		return a_end - a > b_end - b ? 1 : -1;
+	}
+
+	while (true) {
+		if (a == a_end || b == b_end) {
+			if(a_end == 0 && *a == 0)
+				a_end = a;
+			if(b_end == 0 && *b == 0)
+				b_end = b;
+
+			if (a == a_end && b == b_end)
+				return 0;
+
+			return b == b_end ? 1 : -1;
+		}
+
+		char ac = *a;
+		char bc = *b;
+
+		if (ac >= 'A' && ac <= 'Z')
+			ac += 'a' - 'A';
+		if (bc >= 'A' && bc <= 'Z')
+			bc += 'a' - 'A';
+
+		if (ac != bc || !ac) {
+			return ac - bc;
+		}
+
+		a++;
+		b++;
+	}
+
+	return 0;
+}
+
+const char* StringUtils::strcasestr(const char* str, const char* search, const char* str_end, const char* search_end) {
+	if (str_end == NULL)
+		str_end = str + std::strlen(str);
+	if (search_end == NULL)
+		search_end = search + std::strlen(search);
+
+	size_t search_len = search_end - search;
+
+	if (search_len == 0)
+		return str;
+
+	for (const char* s = str; s < str_end-(search_len-1); s++) {
+		if (strcasecmp(s, search, s+search_len, search_end) == 0) {
+			return s;
+		}
+	}
+	return NULL;
+}
+
+void StringUtils::backup_wstr_to_str(char* dest, const wchar_t* src, size_t size) {
+	for (size_t i = 0; i < size; i++) {
+		wchar_t c = src[i];
+		if (c > 127)
+			c = '?';
+		dest[i] = (char)c;
+	}
+}
+void StringUtils::backup_str_to_wstr(wchar_t* dest, const char* src, size_t size) {
+	for (size_t i = 0; i < size; i++) {
+		uint8_t c = (uint8_t)src[i];
+		if (c > 127)
+			c = '?';
+		dest[i] = (wchar_t)c;
+	}
+}
+
+
 bool StringUtils::isValidBaseNum(uint8_t base, const char* str, const char* str_end) {
 	if (str_end == 0)
 		str_end = str + std::strlen(str);
@@ -130,122 +249,6 @@ std::string StringUtils::uIntToBinStr(uint64_t num, uint8_t digits) {
 	return s;
 }
 
-std::string StringUtils::paddLeft(const std::string& s, int paddedLength, char paddWith) {//https://stackoverflow.com/a/667236
-	std::string out = s;
-	out.insert(out.begin(), paddedLength - out.size(), paddWith);
-	return out;
-}
-std::string StringUtils::paddRight(const std::string& s, int paddedLength, char paddWith) {//https://stackoverflow.com/a/667236
-	std::string out = s;
-	out.insert(out.end(), paddedLength - out.size(), paddWith);
-	return out;
-}
-
-std::pair<const char*, const char*> StringUtils::stripString(const char* str, const char* str_end) {
-	if (str_end == NULL)
-		str_end = str + std::strlen(str);
-
-	char c;
-	while (str < str_end && ((c = *str) == ' ' || c == '\n' || c == '\r' || c == '\t'))
-		str++;
-
-	while (str_end > str+1 && ((c = *(str_end-1)) == ' ' || c == '\n' || c == '\r' || c == '\t'))
-		str_end--;
-
-	return {str,str_end};
-}
-std::string_view StringUtils::stripString_(const std::string_view& str) {
-	auto res = stripString(str.data(), str.data() + str.size());
-	return std::string_view(res.first, res.second-res.first);
-}
-
-// https://stackoverflow.com/questions/14265581/parse-split-a-string-in-c-using-string-delimiter-standard-c
-std::vector<std::string> StringUtils::split(const std::string& s, const std::string& delimiter) {
-    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
-    std::vector<std::string> res;
-
-    while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
-        std::string token = s.substr(pos_start, pos_end - pos_start);
-        pos_start = pos_end + delim_len;
-        res.push_back(token);
-    }
-
-    res.push_back (s.substr(pos_start));
-    return res;
-}
-
-int StringUtils::strcasecmp(const char* a, const char* b, const char* a_end, const char* b_end) {
-	if (a_end && b_end && (a_end - a != b_end - b)) {
-		return a_end - a > b_end - b ? 1 : -1;
-	}
-
-	while (true) {
-		if (a == a_end || b == b_end) {
-			if(a_end == 0 && *a == 0)
-				a_end = a;
-			if(b_end == 0 && *b == 0)
-				b_end = b;
-
-			if (a == a_end && b == b_end)
-				return 0;
-
-			return b == b_end ? 1 : -1;
-		}
-
-		char ac = *a;
-		char bc = *b;
-
-		if (ac >= 'A' && ac <= 'Z')
-			ac += 'a' - 'A';
-		if (bc >= 'A' && bc <= 'Z')
-			bc += 'a' - 'A';
-
-		if (ac != bc || !ac) {
-			return ac - bc;
-		}
-
-		a++;
-		b++;
-	}
-
-	return 0;
-}
-
-const char* StringUtils::strcasestr(const char* str, const char* search, const char* str_end, const char* search_end) {
-	if (str_end == NULL)
-		str_end = str + std::strlen(str);
-	if (search_end == NULL)
-		search_end = search + std::strlen(search);
-
-	size_t search_len = search_end - search;
-
-	if (search_len == 0)
-		return str;
-
-	for (const char* s = str; s < str_end-(search_len-1); s++) {
-		if (strcasecmp(s, search, s+search_len, search_end) == 0) {
-			return s;
-		}
-	}
-	return NULL;
-}
-
-void StringUtils::backup_wstr_to_str(char* dest, const wchar_t* src, size_t size) {
-	for (size_t i = 0; i < size; i++) {
-		wchar_t c = src[i];
-		if (c > 127)
-			c = '?';
-		dest[i] = (char)c;
-	}
-}
-void StringUtils::backup_str_to_wstr(wchar_t* dest, const char* src, size_t size) {
-	for (size_t i = 0; i < size; i++) {
-		uint8_t c = (uint8_t)src[i];
-		if (c > 127)
-			c = '?';
-		dest[i] = (wchar_t)c;
-	}
-}
 
 
 std::string StringUtils::loadFileIntoString(const char* path) {

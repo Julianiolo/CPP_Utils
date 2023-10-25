@@ -23,6 +23,14 @@ public:
 		data.clear();
 	}
 
+	inline void shrinkToFit() {
+		data.shrink_to_fit();
+	}
+
+	inline void reserve(size_t amt) {
+		data.reserve(amt);
+	}
+
 	inline size_t addStr(const char* str, const char* str_end = 0, bool nullTerm = true) {
 		DU_ASSERT(str_end == 0 || str_end >= str);
 		if (str_end == 0)
@@ -46,7 +54,8 @@ public:
 		data[off] = c;
 	}
 
-	inline const char* getStr(size_t off) const {
+	inline const char* getStr(StringTable::str off) const {
+		DU_ASSERT(off < data.size());
 		return &data[0] + off;
 	}
 
@@ -59,14 +68,6 @@ public:
 		}
 
 		return currDataLen;
-	}
-
-	inline void shrinkToFit() {
-		data.shrink_to_fit();
-	}
-
-	inline void reserve(size_t amt) {
-		data.reserve(amt);
 	}
 };
 
