@@ -336,13 +336,6 @@ std::vector<std::pair<size_t,std::string>> StringUtils::findStrings(const uint8_
 	return out;
 }
 
-const char* StringUtils::getFileName(const std::string& str) {
-	return StringUtils::getFileName(str.c_str(), str.c_str() + str.size());
-}
-const wchar_t* StringUtils::getFileName(const std::wstring& str) {
-	return StringUtils::getFileName(str.c_str(), str.c_str() + str.size());
-}
-
 /*
 	stof[Ex]:
 	input: string, [end of string], [number of exponent bits], [number of fraction bits], [whether it should do exactly the same as atof or be more strict]
@@ -762,39 +755,6 @@ stof_zero:
 
 stof_end:
 	return (sign << (exponent_bits + fraction_bits)) | (exponent << fraction_bits) | fraction;
-}
-
-std::string StringUtils::getDirName(const char* path, const char* path_end) {
-	if (path_end == 0)
-		path_end = path + strlen(path);
-
-	while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
-		path_end--;
-
-	const char* lastSlash = findCharInStrFromBack('/', path, path_end);
-	const char* lastBSlash = findCharInStrFromBack('\\', path, path_end);
-	const char* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
-
-	if(lastDiv+1 >= path_end)
-		return "";
-
-	return std::string(lastDiv + 1, path_end);
-}
-std::wstring StringUtils::getDirName(const wchar_t* path, const wchar_t* path_end) {
-	if (path_end == 0)
-		path_end = path + wcslen(path);
-
-	while(path+1 <= path_end && (*(path_end-1) == '/' || *(path_end-1) == '\\'))
-		path_end--;
-
-	const wchar_t* lastSlash = findCharInStrFromBack((wchar_t)'/', path, path_end);
-	const wchar_t* lastBSlash = findCharInStrFromBack((wchar_t)'\\', path, path_end);
-	const wchar_t* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
-
-	if (lastDiv + 1 >= path_end)
-		return std::wstring();
-
-	return std::wstring(lastDiv + 1, path_end);
 }
 
 std::string StringUtils::formatTimestamp(const char* fmt, uint64_t time) {

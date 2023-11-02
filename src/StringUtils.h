@@ -93,22 +93,22 @@ namespace StringUtils {
 		return nullptr;
 	}
 	inline const char* findCharInStrFromBack(char c, const std::string& str) {
-		return findCharInStrFromBack(c, str.c_str(), str.c_str() + str.size());
+		return findCharInStrFromBack<char>(c, str.c_str(), str.c_str() + str.size());
 	}
 	inline const wchar_t* findCharInStrFromBack(wchar_t c, const std::wstring& str) {
-		return findCharInStrFromBack(c, str.c_str(), str.c_str() + str.size());
+		return findCharInStrFromBack<wchar_t>(c, str.c_str(), str.c_str() + str.size());
 	}
 
 
 	std::vector<std::pair<size_t,std::string>> findStrings(const uint8_t* data, size_t dataLen, size_t minLen = 1);
 
 	int strcasecmp(const char* a, const char* b, const char* a_end = NULL, const char* b_end = NULL);
+	const char* strcasestr(const char* str, const char* search, const char* str_end = NULL, const char* search_end = NULL);
 
 	std::string addThousandsSeperator(const char* str, const char* str_end = 0, const char* seperator = ",");
 	std::string addThousandsSeperator(const std::string& str, const char* seperator = ",");
 	void addThousandsSeperatorBuf(char* buf, size_t size, uint64_t num, const char* seperator = ",");
 
-	const char* strcasestr(const char* str, const char* search, const char* str_end = NULL, const char* search_end = NULL);
 
 	/*
 		Conversion functions
@@ -297,18 +297,49 @@ namespace StringUtils {
 
 	bool fileExists(const char* path);
 
-	std::string getDirName(const char* path, const char* path_end = NULL);
-	std::wstring getDirName(const wchar_t* path, const wchar_t* path_end = NULL);
+	inline std::string getDirName(const char* path, const char* path_end = NULL) {
+		return getDirName<char, std::string>(path, path_end);
+	}
+	inline std::wstring getDirName(const wchar_t* path, const wchar_t* path_end = NULL) {
+		return getDirName<wchar_t, std::wstring>(path, path_end);
+	}
+	template<typename CHAR_TYPE, typename STR_TYPE>
+	inline STR_TYPE getDirName(const CHAR_TYPE* path, const CHAR_TYPE* path_end = NULL) {
+		if (path_end == 0)
+			path_end = path + StringUtils::ustrlen(path);
+
+		while(path+1 <= path_end && StringUtils::isWhitespace(*(path_end-1)))
+			path_end--;
+
+		if (*(path_end - 1) == '/' || *(path_end - 1) == '\\')
+			return STR_TYPE(path, path_end);
+
+		const CHAR_TYPE* lastSlash = findCharInStrFromBack('/', path, path_end);
+		const CHAR_TYPE* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+		const CHAR_TYPE* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
+
+		if(lastDiv+1 >= path_end)
+			return "";
+
+		return STR_TYPE(lastDiv + 1, path_end);
+	}
+
+	inline constexpr const char* getFileName(const std::string& str) {
+		return StringUtils::getFileName<char>(str.c_str(), str.c_str() + str.size());
+	}
+	inline constexpr const wchar_t* getFileName(const std::wstring& str) {
+		return StringUtils::getFileName<wchar_t>(str.c_str(), str.c_str() + str.size());
+	}
 	template<typename CHAR_TYPE>
 	constexpr const CHAR_TYPE* getFileName(const CHAR_TYPE* path, const CHAR_TYPE* path_end = NULL){
 		if (path_end == 0)
-			path_end = path + ustrlen(path);
+			path_end = path + StringUtils::ustrlen(path);
 
 		while(path+1 <= path_end && (*(path_end-1) == (CHAR_TYPE)'/' || *(path_end-1) == (CHAR_TYPE)'\\'))
 			path_end--;
 
-		const CHAR_TYPE* lastSlash = findCharInStrFromBack((CHAR_TYPE)'/', path, path_end);
-		const CHAR_TYPE* lastBSlash = findCharInStrFromBack((CHAR_TYPE)'\\', path, path_end);
+		const CHAR_TYPE* lastSlash = StringUtils::findCharInStrFromBack((CHAR_TYPE)'/', path, path_end);
+		const CHAR_TYPE* lastBSlash = StringUtils::findCharInStrFromBack((CHAR_TYPE)'\\', path, path_end);
 
 		if (lastSlash == nullptr && lastBSlash == nullptr) {
 			return path;
@@ -319,19 +350,16 @@ namespace StringUtils {
 		return lastDiv + 1;
 	}
 	
-	const char* getFileName(const std::string& str);
-	const wchar_t* getFileName(const std::wstring& str);
-	
 	template<typename CHAR_TYPE>
 	constexpr const CHAR_TYPE* getFileExtension(const CHAR_TYPE* path, const CHAR_TYPE* path_end = NULL){
 		if (path_end == 0)
-			path_end = path + strlen(path);
+			path_end = path + StringUtils::ustrlen(path);
 
-		const CHAR_TYPE* lastSlash = findCharInStrFromBack('/', path, path_end);
-		const CHAR_TYPE* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+		const CHAR_TYPE* lastSlash = StringUtils::findCharInStrFromBack('/', path, path_end);
+		const CHAR_TYPE* lastBSlash = StringUtils::findCharInStrFromBack('\\', path, path_end);
 		const CHAR_TYPE* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
 
-		const CHAR_TYPE* lastDot = findCharInStrFromBack('.', path, path_end);
+		const CHAR_TYPE* lastDot = StringUtils::findCharInStrFromBack('.', path, path_end);
 
 		if (lastDot && lastDot > lastDiv) {
 			return lastDot + 1;
@@ -352,10 +380,3 @@ namespace StringUtils {
 	std::vector<uint8_t> parseHexFileStr(const char* str, const char* str_end = 0);
 }
 #endif
-
-/*
-
-uint8_t HexDigitToInt(char digit);
-uint32_t HexStrToInt(const char* str);
-
-*/

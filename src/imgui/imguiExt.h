@@ -216,7 +216,7 @@ size_t ImGuiExt::SelectSwitch(const char* str_id, const char* const * labels, si
     ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, {0.5,0.5});
     //bool changed = false;
     for (size_t i = 0; i < num; i++) {
-        ImGui::PushID(i);
+        ImGui::PushID((int)i);
         if (i > 0)
             ImGui::SameLine();
         if (ImGui::Selectable(labels[i], selected == i, ImGuiSelectableFlags_NoPadWithHalfSpacing | ImGuiSelectableFlags_DontClosePopups, ImVec2(size.x / num, size.y))) {
@@ -256,7 +256,7 @@ bool ImGuiExt::SelectBits(const char* str_id, const char* const * labels, size_t
     ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, {0.5,0.5});
     bool changed = false;
     for (size_t i = 0; i < num; i++) {
-        ImGui::PushID(i);
+        ImGui::PushID((int)i);
         if (i > 0)
             ImGui::SameLine();
 

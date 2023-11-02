@@ -10,7 +10,7 @@ namespace MathUtils {
 	T clamp(const T& val, const T& min, const T& max) {
 		if (val < min)
 			return min;
-		if (val > max)
+		if (max < val)
 			return max;
 		return val;
 	}
@@ -100,7 +100,7 @@ namespace MathUtils {
 		T exponent_biased = (fi & (((T)1 << (n_exp_bits + n_man_bits))-1)) >> n_man_bits;
 		T mantissa = fi & (((T)1 << n_man_bits) - 1);
 
-		int exponent = exponent_biased - exponent_bias;
+		int exponent = (int)(exponent_biased - exponent_bias);
 
 		if(exponent_biased == ((T)1 << n_exp_bits)-1) {
 			OutT res;
