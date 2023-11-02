@@ -19,11 +19,13 @@ namespace StringUtils {
 		General String functions
 	*/
 
-	std::string paddLeft(const std::string& s, int paddedLength, char paddWith);
-	std::string paddRight(const std::string& s, int paddedLength, char paddWith);
+	std::string paddLeft(const std::string& s, size_t length, char padd);
+	std::string paddRight(const std::string& s, size_t length, char padd);
 
 	std::pair<const char*, const char*> stripString(const char* str, const char* str_end = 0);
 	std::string_view stripString_(const std::string_view& str);
+
+	std::string replace(const char* str, const char* old, const char* val, const char* str_end = 0);
 
 	template<typename ... Args>
 	std::string format(const char* str, Args ... args) { // https://stackoverflow.com/a/26221725
@@ -149,9 +151,17 @@ namespace StringUtils {
 	std::string uIntToHexStr(uint64_t num, uint8_t digits = -1, char pad = '0') {
 		if (digits == (decltype(digits))-1)
 			digits = numStrDigitsNeeded(num,16);
+#if !STRINGUTILS_STD_COMPLIANT
 		std::string s(digits,' ');
 		uIntToHexBuf<upperCase>(num, &s[0], digits, pad);
 		return s;
+#else
+		char* buf = new char[digits + 1];
+		uIntToHexBuf<upperCase>(num, buf, digits, pad);
+		std::string s(buf);
+		delete[] buf;
+		return s;
+#endif
 	}
 	void uIntToHexBufCase(uint64_t num, char* buf, bool upperCase, uint8_t digits = -1, char pad = '0');
 	
@@ -241,7 +251,7 @@ namespace StringUtils {
 		if(strEnd == nullptr)
 			strEnd = str + std::strlen(str);
 			
-		// str at least 3 long
+		// check if str at least 3 long and starts with '0'
 		if (str + 2 < strEnd && str[0] == '0') {
 			switch (str[1]) {
 				case 'b':
