@@ -307,12 +307,6 @@ namespace StringUtils {
 
 	bool fileExists(const char* path);
 
-	inline std::string getDirName(const char* path, const char* path_end = NULL) {
-		return getDirName<char, std::string>(path, path_end);
-	}
-	inline std::wstring getDirName(const wchar_t* path, const wchar_t* path_end = NULL) {
-		return getDirName<wchar_t, std::wstring>(path, path_end);
-	}
 	template<typename CHAR_TYPE, typename STR_TYPE>
 	inline STR_TYPE getDirName(const CHAR_TYPE* path, const CHAR_TYPE* path_end = NULL) {
 		if (path_end == 0)
@@ -324,22 +318,22 @@ namespace StringUtils {
 		if (*(path_end - 1) == '/' || *(path_end - 1) == '\\')
 			return STR_TYPE(path, path_end);
 
-		const CHAR_TYPE* lastSlash = findCharInStrFromBack('/', path, path_end);
-		const CHAR_TYPE* lastBSlash = findCharInStrFromBack('\\', path, path_end);
+		const CHAR_TYPE* lastSlash = findCharInStrFromBack<CHAR_TYPE>('/', path, path_end);
+		const CHAR_TYPE* lastBSlash = findCharInStrFromBack<CHAR_TYPE>('\\', path, path_end);
 		const CHAR_TYPE* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
 
 		if(lastDiv+1 >= path_end)
-			return "";
+			return STR_TYPE();
 
 		return STR_TYPE(lastDiv + 1, path_end);
 	}
+	inline std::string getDirName(const char* path, const char* path_end = NULL) {
+		return getDirName<char, std::string>(path, path_end);
+	}
+	inline std::wstring getDirName(const wchar_t* path, const wchar_t* path_end = NULL) {
+		return getDirName<wchar_t, std::wstring>(path, path_end);
+	}
 
-	inline constexpr const char* getFileName(const std::string& str) {
-		return StringUtils::getFileName<char>(str.c_str(), str.c_str() + str.size());
-	}
-	inline constexpr const wchar_t* getFileName(const std::wstring& str) {
-		return StringUtils::getFileName<wchar_t>(str.c_str(), str.c_str() + str.size());
-	}
 	template<typename CHAR_TYPE>
 	constexpr const CHAR_TYPE* getFileName(const CHAR_TYPE* path, const CHAR_TYPE* path_end = NULL){
 		if (path_end == 0)
@@ -358,6 +352,12 @@ namespace StringUtils {
 		const CHAR_TYPE* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
 
 		return lastDiv + 1;
+	}
+	inline const char* getFileName(const std::string& str) {
+		return StringUtils::getFileName<char>(str.c_str(), str.c_str() + str.size());
+	}
+	inline const wchar_t* getFileName(const std::wstring& str) {
+		return StringUtils::getFileName<wchar_t>(str.c_str(), str.c_str() + str.size());
 	}
 	
 	template<typename CHAR_TYPE>

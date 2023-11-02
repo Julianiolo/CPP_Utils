@@ -30,7 +30,7 @@ std::string StringUtils::replace(const char* str, const char* old, const char* v
 
 	const size_t strLen = str_end-str;
 	const size_t oldLen = std::strlen(old);
-	const size_t valLen = std::strlen(val);
+	//const size_t valLen = std::strlen(val);
 
 	DU_ASSERT(oldLen > 0);
 

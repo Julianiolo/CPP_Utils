@@ -29,7 +29,57 @@ namespace ImGuiExt {
 
     bool ToggleButton(const char* str_id, bool* v, const ImVec2& size = { 0,0 });
     template<typename T>
-    bool SelectBits(const char* str_id, const char* const * labels, size_t num, T* selected, const ImVec2& size = { 200,0 });
+    bool SelectBits(const char* str_id, const char* const* labels, size_t num, T* selected, const ImVec2& size_arg = { 200,0 }) {
+        ImGui::PushID(str_id);
+
+        ImGui::BeginGroup();
+
+        ImVec2 avail = ImGui::GetContentRegionAvail();
+        ImVec2 size = ImVec2(size_arg.x != 0 ? size_arg.x : avail.x, size_arg.y != 0 ? size_arg.y : ImGui::GetFrameHeight());
+
+        const ImVec2 borderPad = { 1,1 };
+        ImRect rec(ImGui::GetCursorScreenPos() - borderPad, ImGui::GetCursorScreenPos() + size + borderPad);
+        ImGui::GetWindowDrawList()->AddRectFilled(rec.Min, rec.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ChildBg)));
+
+        float CurrLineTextBaseOffset = ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset;
+        ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = 0;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,ImGui::GetStyle().ItemSpacing.y });
+        ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, {0.5,0.5});
+        bool changed = false;
+        for (size_t i = 0; i < num; i++) {
+            ImGui::PushID((int)i);
+            if (i > 0)
+                ImGui::SameLine();
+
+            size_t bitInd = num-i-1;
+
+            const char* label;
+            char buf[4];
+            if(labels) {
+                label = labels[i];
+            }else{
+                snprintf(buf, sizeof(buf), "%d", (int)bitInd);
+                label = buf;
+            }
+
+            if (ImGui::Selectable(label, !!((*selected) & (1<<bitInd)), ImGuiSelectableFlags_NoPadWithHalfSpacing | ImGuiSelectableFlags_DontClosePopups, ImVec2(size.x / num, size.y))) {
+                (*selected) ^= 1<<bitInd;
+                changed = true;
+            }
+            ImGui::PopID();
+        }
+        ImGui::PopStyleVar(2);
+
+        ImGui::GetWindowDrawList()->AddRect(rec.Min, rec.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Border)));
+
+        ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = CurrLineTextBaseOffset;
+
+        ImGui::EndGroup();
+
+        ImGui::PopID();
+        return changed;
+    }
 	size_t SelectSwitch(const char* str_id, const char* const * labels, size_t num, size_t selected, const ImVec2& size = { 200,0 });
 	void ImageRect(const Texture2D& tex, float destWidth, float destHeight, const Rectangle& srcRect);
 
@@ -235,58 +285,6 @@ size_t ImGuiExt::SelectSwitch(const char* str_id, const char* const * labels, si
 
     ImGui::PopID();
     return selected;
-}
-template<typename T>
-bool ImGuiExt::SelectBits(const char* str_id, const char* const * labels, size_t num, T* selected, const ImVec2& size_arg) {
-    ImGui::PushID(str_id);
-
-    ImGui::BeginGroup();
-
-    ImVec2 avail = ImGui::GetContentRegionAvail();
-    ImVec2 size = ImVec2(size_arg.x != 0 ? size_arg.x : avail.x, size_arg.y != 0 ? size_arg.y : ImGui::GetFrameHeight());
-
-    const ImVec2 borderPad = { 1,1 };
-    ImRect rec(ImGui::GetCursorScreenPos() - borderPad, ImGui::GetCursorScreenPos() + size + borderPad);
-    ImGui::GetWindowDrawList()->AddRectFilled(rec.Min, rec.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_ChildBg)));
-
-    float CurrLineTextBaseOffset = ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset;
-    ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = 0;
-
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0,ImGui::GetStyle().ItemSpacing.y });
-    ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, {0.5,0.5});
-    bool changed = false;
-    for (size_t i = 0; i < num; i++) {
-        ImGui::PushID((int)i);
-        if (i > 0)
-            ImGui::SameLine();
-
-        size_t bitInd = num-i-1;
-
-        const char* label;
-        char buf[4];
-        if(labels) {
-            label = labels[i];
-        }else{
-            snprintf(buf, sizeof(buf), "%d", (int)bitInd);
-            label = buf;
-        }
-        
-        if (ImGui::Selectable(label, !!((*selected) & (1<<bitInd)), ImGuiSelectableFlags_NoPadWithHalfSpacing | ImGuiSelectableFlags_DontClosePopups, ImVec2(size.x / num, size.y))) {
-            (*selected) ^= 1<<bitInd;
-            changed = true;
-        }
-        ImGui::PopID();
-    }
-    ImGui::PopStyleVar(2);
-
-    ImGui::GetWindowDrawList()->AddRect(rec.Min, rec.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Border)));
-
-    ImGui::GetCurrentWindow()->DC.CurrLineTextBaseOffset = CurrLineTextBaseOffset;
-
-    ImGui::EndGroup();
-
-    ImGui::PopID();
-    return changed;
 }
 
 void ImGuiExt::ImageRect(const Texture2D& tex, float destWidth, float destHeight, const Rectangle& srcRect) { // basically just copy-paste from rlImgui but with floats for dest dimensions
