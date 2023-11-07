@@ -88,6 +88,8 @@ namespace ImGuiExt {
 
 	bool InputTextString(const char* label, const char* hint, std::string* str, ImGuiInputTextFlags flags = 0, const ImVec2& size = { 0,0 });
 
+    bool Link(const char* str, const char* action_str = nullptr, std::function<void(const char*)> action = OpenURL);
+
     void Image(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col={0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
 	void ImageEx(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& uv2, const ImVec2& uv3, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col={0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
 	void ImageRot90(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin = {0,0}, const ImVec2& uvMax = {1,1}, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col = {0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
@@ -97,8 +99,7 @@ namespace ImGuiExt {
     void RightAlignText(const char* str, const char* str_end = 0);
 }
 
-#ifdef IMGUIEXT_IMPLEMENTATION
-
+#if defined(IMGUIEXT_IMPLEMENTATION)
 
 void ImGuiExt::TextColored(const ImVec4& col, const char* text_start, const char* text_end) {
     ImGui::PushStyleColor(ImGuiCol_Text, col);
@@ -341,7 +342,6 @@ void ImGuiExt::Rect(ImGuiID id, const ImVec4& col, ImVec2 size) {
 }
 
 
-
 static int TextCallBack(ImGuiInputTextCallbackData* data) {
     std::string* str = (std::string*)data->UserData;
 
@@ -357,6 +357,24 @@ bool ImGuiExt::InputTextString(const char* label, const char* hint, std::string*
         size, flags | ImGuiInputTextFlags_CallbackResize, TextCallBack, str
     );
 }
+
+bool ImGuiExt::Link(const char* str, const char* action_str, std::function<void(const char*)> action) {
+    constexpr ImVec4 linkColor = {.4,.85,1,1};
+    ImGui::PushStyleColor(ImGuiCol_Text, linkColor);
+
+    ImGui::TextUnformatted(str);
+    if(ImGui::IsItemClicked())
+        action(action_str ? action_str : str);
+
+    ImRect r(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+
+    ImGui::GetWindowDrawList()->AddLine(r.GetBL(), r.GetBR(), ImColor(linkColor));
+    
+    ImGui::PopStyleColor();
+
+    return ImGui::IsItemClicked();
+}
+
 
 void ImGuiExt::Image(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col, const ImVec2& pos, ImDrawList* drawList) {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
