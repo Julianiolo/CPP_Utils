@@ -19,10 +19,45 @@
 
 #include "StringUtils.h"
 
-bool SystemUtils::revealInFileExplorer(const char* path) {
-	std::string parent = StringUtils::getDirName(path);
-	// wtf this is way to hard
-	abort();
+bool SystemUtils::revealInFileExplorer(const char* path_) {
+	// wtf this is way too hard, currently we can just open the folder, at least on windows we should be able to select the file
+
+	std::string path = path_;
+
+	// cygwin hack to fix a "/cygdrive/c/..." to a "c:/..."
+#ifdef __CYGWIN__
+	{
+		const char* searchFor = "/cygdrive/";
+		const size_t searchForLen = strlen(searchFor);
+		if(path.size() >= searchForLen+2 && strncmp(path.c_str(), searchFor, searchForLen) == 0) {
+			const char driveLetter = path[searchForLen];
+			path = std::string() + driveLetter + ':' + '/' + path.substr(searchForLen+2);
+		}
+	}
+#endif
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+	std::replace(path.begin(), path.end(), '/', '\\');
+#else
+	std::replace(path.begin(), path.end(), '\\', '/');
+#endif
+
+	std::string target = StringUtils::getDirName(path.c_str());
+
+	std::string cmd;
+#if defined(_WIN32) || defined(__CYGWIN__)
+	cmd = StringUtils::format("explorer \"%s\"", target.c_str());
+#endif
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+	cmd = StringUtils::format("xdg-open '%s'", target.c_str()); // Alternatives: firefox, x-www-browser
+#endif
+#if defined(__APPLE__)
+	cmd = StringUtils::format("open '%s'", target.c_str());
+#endif
+	if (cmd.size() > 0) {
+		return system(cmd.c_str()) != -1;
+	}
+	return false;
 #ifdef _WIN32
 	// https://learn.microsoft.com/de-de/windows/win32/api/shlobj_core/nf-shlobj_core-shopenfolderandselectitems?redirectedfrom=MSDN
 #else

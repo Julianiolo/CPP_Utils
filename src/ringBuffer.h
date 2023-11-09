@@ -17,7 +17,7 @@ private:
 public:
     template <typename IT, typename VT>
     class Iterator {
-        using iterator_category = std::forward_iterator_tag;
+        using iterator_category = std::random_access_iterator_tag;
         using difference_type = std::ptrdiff_t;
         using value_type = VT;
         using pointer = value_type*;
@@ -38,6 +38,9 @@ public:
         pointer operator->() {
             return &rb.get(ind);
         }
+        reference operator[](difference_type d) {
+            return rb.get(ind + d);
+        }
 
         Iterator& operator++() {
             ind++;
@@ -48,39 +51,69 @@ public:
             ++(*this); 
             return tmp; 
         }
+        Iterator& operator--() {
+            ind--;
+            return *this;
+        }
+        Iterator operator--(int) {
+            Iterator tmp = *this; 
+            --(*this); 
+            return tmp; 
+        }
+        Iterator& operator+=(difference_type d) {
+            ind += d;
+            return *this;
+        }
+        Iterator& operator-=(difference_type d) {
+            ind -= d;
+            return *this;
+        }
 
-        bool operator== (const Iterator& b) {
+        friend Iterator operator+(const Iterator& it, difference_type d) {
+            return Iterator(it) += d;
+        }
+        friend Iterator operator+(difference_type d, const Iterator& it) {
+            return Iterator(it) += d;
+        }
+        friend Iterator operator-(const Iterator& it, difference_type d) {
+            return Iterator(it) -= d;
+        }
+        friend Iterator operator-(difference_type d, const Iterator& it) {
+            return Iterator(it) -= d;
+        }
+
+        bool operator== (const Iterator& b) const {
             return rb == b.rb && ind == b.ind;
         }
-        bool operator!= (const Iterator& b) {
+        bool operator!= (const Iterator& b) const {
             return !(*this == b);
         }
     };
 
-    RingBuffer(size_t size_) : data(size_){
+    RingBuffer(size_t size_) : data(size_) {
 
     }
 
-    void initTo(const T& val){
+    void initTo(const T& val) {
         for(size_t i = 0; i<data.size();i++){
             data[i] = val;
         }
     }
 
-    T& get(size_t ind){
+    T& get(size_t ind) {
         if(ind > len)
             throw std::runtime_error("ringbuffer index out of bounds");
         size_t ind_ = (ptr+data.size()-len+ind)%data.size();
         return data[ind_];
     }
-    const T& get(size_t ind) const{
+    const T& get(size_t ind) const {
         if(ind > len)
             throw std::runtime_error("ringbuffer index out of bounds");
         size_t ind_ = (ptr+data.size()-len+ind)%data.size();
         return data[ind_];
     }
 
-    void add(const T& t){
+    void add(const T& t) {
         if(ptr >= data.size())
             throw std::runtime_error("ptr out of bounds");
         data[ptr++] = t;
@@ -97,7 +130,7 @@ public:
     size_t size() const {
         return len;
     }
-    size_t sizeMax() const{
+    size_t sizeMax() const {
         return data.size();
     }
 
@@ -118,6 +151,10 @@ public:
                 return false;
         }
         return true;
+    }
+
+    bool operator!=(const RingBuffer& other) const {
+        return !(*this) == other;
     }
 
     Iterator<RingBuffer,T> begin() {
