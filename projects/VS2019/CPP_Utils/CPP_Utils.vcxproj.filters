@@ -19,6 +19,9 @@
     <Filter Include="Source Files\tests">
       <UniqueIdentifier>{4f67e040-8c8d-48bf-935f-4574e313a40f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\raylib">
+      <UniqueIdentifier>{239cd70b-4534-4b7f-9f80-991dfce8264f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\DataUtils.cpp">
@@ -85,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\imgui\imguiExt.h">
       <Filter>Source Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\raylib\TextureUtils.h">
+      <Filter>Source Files\raylib</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
