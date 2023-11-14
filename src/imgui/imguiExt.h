@@ -18,6 +18,10 @@ namespace ImGuiExt {
 	void PushTextColor(const ImVec4& col);
 	void PopTextColor();
 
+    bool BeginPopup(ImGuiID id, ImGuiPopupFlags flags = ImGuiPopupFlags_None);
+
+    ImVec2 GetButtonSize(const char* str, const ImVec2& size_arg = {0,0});
+
 	ImVec2 GetContentSize();
 	void SetScrollNormX(float scrollAmt_norm, float centerRatio = 0.5f);
 	void SetScrollNormY(float scrollAmt_norm, float centerRatio = 0.5f);
@@ -96,6 +100,8 @@ namespace ImGuiExt {
 
 	ImVec4 BrightenColor(const ImVec4& col, float f);
 
+    // right align
+    bool RA_Button(const char* str, const ImVec2& size_arg);
     void RightAlignText(const char* str, const char* str_end = 0);
 }
 
@@ -114,6 +120,24 @@ void ImGuiExt::PushTextColor(const ImVec4& col) {
 void ImGuiExt::PopTextColor() {
     ImGui::PopStyleColor();
 }
+
+bool ImGuiExt::BeginPopup(ImGuiID id, ImGuiWindowFlags flags) {
+    ImGuiContext& g = *GImGui;
+    if (g.OpenPopupStack.Size <= g.BeginPopupStack.Size) // Early out for performance
+    {
+        g.NextWindowData.ClearFlags(); // We behave like Begin() and need to consume those values
+        return false;
+    }
+    flags |= ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
+    return ImGui::BeginPopupEx(id, flags);
+}
+
+ImVec2 ImGuiExt::GetButtonSize(const char* str, const ImVec2& size_arg) {
+    ImGuiStyle& style = ImGui::GetStyle();
+    const ImVec2 label_size = ImGui::CalcTextSize(str, NULL, true);
+    return ImGui::CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+}
+
 
 ImVec2 ImGuiExt::GetContentSize() {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -503,6 +527,13 @@ void ImGuiExt::RightAlignText(const char* str, const char* str_end) {
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + std::max(0.0f, ImGui::GetContentRegionAvail().x - textSize.x));
     ImGui::TextUnformatted(str, str_end);
 }
+
+bool ImGuiExt::RA_Button(const char* str, const ImVec2& size_arg) {
+    const ImVec2 size = ImGuiExt::GetButtonSize(str, size_arg);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + std::max(0.0f, ImGui::GetContentRegionAvail().x - size.x));
+    return ImGui::Button(str, size_arg);
+}
+
 
 #endif
 
