@@ -16,6 +16,11 @@ namespace RlTextureUtils {
         RenderTextureWrapper(const RenderTextureWrapper& other);
         RenderTextureWrapper(RenderTextureWrapper&& other);
         ~RenderTextureWrapper();
+
+        RenderTextureWrapper& operator=(const RenderTextureWrapper& other);
+        RenderTextureWrapper& operator=(RenderTextureWrapper&& other);
+
+        void clear();
     };
 };
 
@@ -30,25 +35,40 @@ RlTextureUtils::RenderTextureWrapper::RenderTextureWrapper(int width, int height
 
 }
 RlTextureUtils::RenderTextureWrapper::RenderTextureWrapper(const RenderTextureWrapper& other) {
-    DU_ASSERT(other.valid);
-
-    if (valid)
-        UnloadRenderTexture(tex);
-
-    tex = LoadRenderTexture(other.tex.texture.width, other.tex.texture.height);
-    valid = true;
-
-    // todo copy data maybe?
+    *this = other;
 }
 RlTextureUtils::RenderTextureWrapper::RenderTextureWrapper(RenderTextureWrapper&& other) {
-    DU_ASSERT(other.valid);
-    tex = other.tex;
-    valid = true;
-    other.valid = false;
+    *this = other;
 }
 RlTextureUtils::RenderTextureWrapper::~RenderTextureWrapper() {
+    clear();
+}
+
+RlTextureUtils::RenderTextureWrapper& RlTextureUtils::RenderTextureWrapper::operator=(const RenderTextureWrapper& other) {
+    clear();
+
+    if (other.valid) {
+        tex = LoadRenderTexture(other.tex.texture.width, other.tex.texture.height);
+        valid = true;
+    }
+    return *this;
+}
+
+RlTextureUtils::RenderTextureWrapper& RlTextureUtils::RenderTextureWrapper::operator=(RenderTextureWrapper&& other) {
+    clear();
+
+    if (other.valid) {
+        tex = other.tex;
+        valid = true;
+        other.valid = false;
+    }
+    return *this;
+}
+
+void RlTextureUtils::RenderTextureWrapper::clear() {
     if (valid)
         UnloadRenderTexture(tex);
+    valid = false;
 }
 
 #endif

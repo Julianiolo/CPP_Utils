@@ -383,7 +383,7 @@ bool ImGuiExt::InputTextString(const char* label, const char* hint, std::string*
 }
 
 bool ImGuiExt::Link(const char* str, const char* action_str, std::function<void(const char*)> action) {
-    constexpr ImVec4 linkColor = {.4,.85,1,1};
+    constexpr ImVec4 linkColor = {.4f,.85f,1,1};
     ImGui::PushStyleColor(ImGuiCol_Text, linkColor);
 
     ImGui::TextUnformatted(str);
