@@ -248,29 +248,36 @@ void SystemUtils::CallProcThread::update() {
     f = nullptr;
 }
 
-SystemUtils::ThreadPool::ThreadPool() {
-	
-}
-SystemUtils::ThreadPool::ThreadPool(uint32_t num_threads) {
-	start(num_threads);
+SystemUtils::ThreadPool::ThreadPool(size_t num_threads) : num_threads(num_threads) {
+	if(num_threads == (decltype(num_threads))-1)
+		num_threads = std::thread::hardware_concurrency();
 }
 SystemUtils::ThreadPool::~ThreadPool() {
 	stop();
 }
 
-void SystemUtils::ThreadPool::start(uint32_t num_threads) {
-	if (threads.size() != 0) // already running
-		return;
-
-	should_terminate = false;
-
-	if(num_threads == (decltype(num_threads))-1)
-		num_threads = std::thread::hardware_concurrency();
-	threads.reserve(num_threads);
-	for (size_t i = 0; i < num_threads; i++) {
+void SystemUtils::ThreadPool::addThreads(size_t n) {
+	for (size_t i = 0; i < n; i++) {
 		threads.push_back(std::thread([this] {
 			threadRun();
 		}));
+	}
+}
+
+void SystemUtils::ThreadPool::start() {
+	{
+		std::unique_lock<std::mutex> lock(queue_mutex);
+		if (threads.size() != 0) // already running
+			return;
+	}
+
+	should_terminate = false;
+
+
+	{
+		std::unique_lock<std::mutex> lock(queue_mutex);
+		threads.reserve(num_threads);
+		addThreads(num_threads);
 	}
 }
 void SystemUtils::ThreadPool::stop() {
@@ -310,6 +317,13 @@ void SystemUtils::ThreadPool::threadRun() {
 		std::function<void(void)> job;
 		{
 			std::unique_lock<std::mutex> lock(queue_mutex);
+			if (threads.size() > num_threads)
+				return;
+
+			if (should_terminate) {
+				return;
+			}
+
 			mutex_condition.wait(lock, [this] {
 				return !jobs.empty() || should_terminate;
 			});
@@ -321,6 +335,24 @@ void SystemUtils::ThreadPool::threadRun() {
 		}
 		job();
 	}
+}
+
+size_t SystemUtils::ThreadPool::getNumThreads() const {
+	return num_threads;
+}
+void SystemUtils::ThreadPool::setNumThreads(size_t n) {
+	if(n == (decltype(n))-1)
+		n = std::thread::hardware_concurrency();
+
+	if (n > num_threads) {
+		addThreads(n - num_threads);
+	}
+	else {
+		for (size_t i = 0; i < num_threads - n; i++) {
+			mutex_condition.notify_one();
+		}
+	}
+	num_threads = n;
 }
 
 bool SystemUtils::ThreadPool::shouldStop() const {

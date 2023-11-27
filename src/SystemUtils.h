@@ -64,23 +64,28 @@ namespace SystemUtils {
     // heavily inspired by this: https://stackoverflow.com/a/32593825
 	class ThreadPool {
 	private:
-		bool should_terminate = false;
+		volatile bool should_terminate = false;
 		std::mutex queue_mutex;
 		std::condition_variable mutex_condition;
 		std::vector<std::thread> threads;
 		std::queue<std::function<void(void)>> jobs;
 
+        size_t num_threads;
+
 		void threadRun();
+        void addThreads(size_t n);
 	public:
-        ThreadPool();
-        ThreadPool(uint32_t num_threads = -1);
+        ThreadPool(size_t num_threads = -1);
         ~ThreadPool();
 
-		void start(uint32_t num_threads = -1);
+		void start();
 		void stop();
 		bool busy();
 		bool running() const;
 		void addJob(const std::function<void(void)>& job);
+
+        size_t getNumThreads() const;
+        void setNumThreads(size_t n);
 
         bool shouldStop() const;
 	};
