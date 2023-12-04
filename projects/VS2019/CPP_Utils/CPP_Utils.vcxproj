@@ -22,6 +22,7 @@
     <ClCompile Include="..\..\..\src\ActionManager.cpp" />
     <ClCompile Include="..\..\..\src\bitVector.cpp" />
     <ClCompile Include="..\..\..\src\DataUtils.cpp" />
+    <ClCompile Include="..\..\..\src\FileUtils.cpp" />
     <ClCompile Include="..\..\..\src\LogUtils.cpp" />
     <ClCompile Include="..\..\..\src\StreamUtils.cpp" />
     <ClCompile Include="..\..\..\src\StringUtils.cpp" />
@@ -40,6 +41,7 @@
     <ClInclude Include="..\..\..\src\bitVector.h" />
     <ClInclude Include="..\..\..\src\DataUtils.h" />
     <ClInclude Include="..\..\..\src\DataUtilsSize.h" />
+    <ClInclude Include="..\..\..\src\FileUtils.h" />
     <ClInclude Include="..\..\..\src\imgui\icons.h" />
     <ClInclude Include="..\..\..\src\imgui\imguiExt.h" />
     <ClInclude Include="..\..\..\src\LogUtils.h" />
