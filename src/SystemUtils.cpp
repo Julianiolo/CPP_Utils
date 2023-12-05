@@ -58,6 +58,7 @@ bool SystemUtils::revealInFileExplorer(const char* path_) {
 	cmd = StringUtils::format("open '%s'", target.c_str());
 #endif
 	if (cmd.size() > 0) {
+		printf(">%s\n", cmd.c_str());
 		return system(cmd.c_str()) != -1;
 	}
 	return false;

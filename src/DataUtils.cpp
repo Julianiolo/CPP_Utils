@@ -6,12 +6,12 @@
 DataUtils::AlignedBuffer::AlignedBuffer(): data(), size(0), buf(NULL) {
 
 }
-DataUtils::AlignedBuffer::AlignedBuffer(size_t size, size_t alignment): data(size), size(size), buf(NULL) {
+DataUtils::AlignedBuffer::AlignedBuffer(size_t size, size_t alignment): data(size+alignment-1), size(size), buf(NULL) {
 	if(size > 0) {
 		buf = &data[0];
-		size_t space;
+		size_t space = size+alignment-1;
 		void* buf_ = (void*)buf;
-		std::align(alignment, size+alignment-1, buf_, space);
+		std::align(alignment, size, buf_, space);
 		buf = (char*)buf_;
 
 		DU_ASSERT(space >= size);

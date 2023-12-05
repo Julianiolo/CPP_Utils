@@ -324,10 +324,10 @@ namespace StringUtils {
 		const CHAR_TYPE* lastBSlash = findCharInStrFromBack<CHAR_TYPE>('\\', path, path_end);
 		const CHAR_TYPE* lastDiv = std::max(lastSlash != nullptr ? lastSlash : 0, lastBSlash != nullptr ? lastBSlash : 0);
 
-		if(lastDiv+1 >= path_end)
-			return STR_TYPE();
+		if (lastDiv == nullptr)
+			return STR_TYPE(path, path_end);
 
-		return STR_TYPE(lastDiv + 1, path_end);
+		return STR_TYPE(path, lastDiv);
 	}
 	inline std::string getDirName(const char* path, const char* path_end = NULL) {
 		return getDirName<char, std::string>(path, path_end);
