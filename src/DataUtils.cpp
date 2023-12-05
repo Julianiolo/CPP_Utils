@@ -3,6 +3,28 @@
 
 #include "StringUtils.h"
 
+DataUtils::AlignedBuffer::AlignedBuffer(): data(), size(0), buf(NULL) {
+
+}
+DataUtils::AlignedBuffer::AlignedBuffer(size_t size, size_t alignment): data(size), size(size), buf(NULL) {
+	if(size > 0) {
+		buf = &data[0];
+		size_t space;
+		void* buf_ = (void*)buf;
+		std::align(alignment, size+alignment-1, buf_, space);
+		buf = (char*)buf_;
+
+		DU_ASSERT(space >= size);
+	}
+}
+
+char* DataUtils::AlignedBuffer::get() const{
+	return buf;
+}
+size_t DataUtils::AlignedBuffer::getSize() const {
+	return size;
+}
+
 DataUtils::ByteStream::NoDataLeftException::NoDataLeftException(size_t off, size_t getAmt, size_t dataLen) : std::runtime_error(StringUtils::format("Trying to get %" DU_PRIuSIZE " Bytes but only %" DU_PRIuSIZE " are left! total: %" DU_PRIuSIZE, getAmt, dataLen-off,dataLen)), 
 off(off), getAmt(getAmt), dataLen(dataLen) 
 {

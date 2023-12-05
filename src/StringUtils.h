@@ -290,6 +290,8 @@ namespace StringUtils {
 		return out;
 	}
 
+	void byteSizeToBufSmall(char* buf, size_t buf_size, uint64_t bytes);
+
 	std::vector<std::string> split(const std::string& s, const std::string& delimiter);
 
 	void backup_wstr_to_str(char* dest, const wchar_t* src, size_t size);

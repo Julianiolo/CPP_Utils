@@ -20,6 +20,15 @@ namespace MathUtils {
 		return a*a;
 	}
 
+	template<typename T>
+	T ceil_div(const T& a, const T& b) {
+		if constexpr(std::is_floating_point_v<T>) {
+			return std::ceil(a/b);
+		}else{
+			return !!a + ((a - !!a) / b); // https://stackoverflow.com/questions/2745074/fast-ceiling-of-an-integer-division-in-c-c
+		}
+	}
+
 	template<typename T, typename OutT, uint8_t n_exp_bits, uint8_t n_man_bits>
 	constexpr OutT _ToIEEE754(T f) {
 		constexpr OutT exponent_bias = ((OutT)1 << n_exp_bits) / 2 - 1;

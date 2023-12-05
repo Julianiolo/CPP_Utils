@@ -13,8 +13,10 @@
 #include <exception>
 #include <iostream>
 #include <sstream>
+#include <cmath>
 
 #include "DataUtils.h"
+#include "MathUtils.h"
 
 #ifdef __EMSCRIPTEN__
 	#include "emscripten.h"
@@ -155,6 +157,31 @@ const char* StringUtils::strcasestr(const char* str, const char* search, const c
 	}
 	return NULL;
 }
+
+void StringUtils::byteSizeToBufSmall(char* buf, size_t buf_size, uint64_t bytes) {
+	if(buf_size == 0) return;
+
+	constexpr const char* prefixes[] = {"", "K", "M", "G", "T", "P", "E", "Z", "Y", "R", "Q"};
+	size_t prefix = 0;
+	
+	uint64_t div_factor = 1;
+	{
+		uint64_t num_ = bytes;
+		while(num_ >= 1000) {
+			num_ /= 1000;
+			div_factor *= 1000;
+			prefix++;
+		}
+	}
+
+	if(prefix >= DU_ARRAYSIZE(prefixes)){
+		prefix = 0;
+		div_factor = 1;
+	}
+
+	snprintf(buf, buf_size, "%" DU_PRIuSIZE "%sB", MathUtils::ceil_div(bytes, div_factor), prefixes[prefix]);
+}
+
 
 void StringUtils::backup_wstr_to_str(char* dest, const wchar_t* src, size_t size) {
 	for (size_t i = 0; i < size; i++) {

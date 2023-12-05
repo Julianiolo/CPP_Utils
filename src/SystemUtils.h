@@ -13,7 +13,6 @@
 #include <unordered_map>
 #include <atomic>
 
-
 namespace SystemUtils {
     template<typename T1, typename T2>
     double durationToSecs(const std::chrono::duration<T1, T2>& dur) {
@@ -33,6 +32,7 @@ namespace SystemUtils {
 
     std::string getErrorCodeMsg(int errorCode);
     
+    int getErrorCode();
 
     struct CallProcThread {
     private:

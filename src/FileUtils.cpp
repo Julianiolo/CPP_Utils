@@ -132,7 +132,7 @@ bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, c
 	if (callB != NULL && callB(-1, -1))
 		return false;
 
-	std::unique_ptr<char[]> buf_;
+	DataUtils::AlignedBuffer buf;
 	if (buf1 == NULL || buf2 == NULL || bufSize == 0) {
 		if (bufSize == 0) {
 			bufSize = (size_t)1 << 22;
@@ -140,15 +140,10 @@ bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, c
 
 		constexpr size_t align_amt = 32;
 
-		buf_ = std::make_unique<char[]>(bufSize*2+align_amt);
-		size_t space;
-		void* buf = (void*)buf_.get();
-		std::align(align_amt, bufSize*2 + align_amt, buf, space);
+		buf = DataUtils::AlignedBuffer(bufSize*2, align_amt);
 
-		DU_ASSERT(space >= bufSize*2);
-
-		buf1 = &((char*)buf)[0];
-		buf2 = &((char*)buf)[bufSize];
+		buf1 = &(buf.get())[0];
+		buf2 = &(buf.get())[bufSize];
 	}
 
 	if (callB != NULL && callB(-1, -1))

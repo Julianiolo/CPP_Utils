@@ -16,6 +16,7 @@
 #include <string_view>
 #include <climits>
 #include <string_view>
+#include <vector>
 
 // Print size_t macros
 #if SIZE_MAX == 0xffffull
@@ -282,6 +283,18 @@ namespace DataUtils {
 			}
 		}
 	}
+
+	class AlignedBuffer {
+	private:
+		std::vector<char> data;
+		size_t size;
+		char* buf;
+	public:
+		AlignedBuffer();
+		AlignedBuffer(size_t size, size_t alignment=32);
+		char* get() const;
+		size_t getSize() const;
+	};
 
 	template<typename T, typename Mutex>
 	class ThreadSafeAccessor {

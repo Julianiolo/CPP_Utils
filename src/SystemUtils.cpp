@@ -91,6 +91,14 @@ std::string SystemUtils::getErrorCodeMsg(int errorCode) {
 	return errMsg;
 }
 
+int SystemUtils::getErrorCode() {
+#ifdef _WIN32
+	return GetLastError();
+#else
+	return errno;
+#endif
+}
+
 
 // ######################
 
