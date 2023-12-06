@@ -99,6 +99,7 @@ namespace ImGuiExt {
 	void ImageRot90(ImGuiID id, ImTextureID user_texture_id, const ImVec2& size, uint8_t rotation, const ImVec2& uvMin = {0,0}, const ImVec2& uvMax = {1,1}, const ImVec4& tint_col = {1,1,1,1}, const ImVec4& border_col = {0,0,0,0}, const ImVec2& pos={-INFINITY,-INFINITY}, ImDrawList* drawList = NULL);
 
 	ImVec4 BrightenColor(const ImVec4& col, float f);
+    ImVec4 ColorFromInd(uint64_t ind, float saturation = .7f, float value = 1);
 
     // right align
     bool RA_Button(const char* str, const ImVec2& size_arg);
@@ -517,6 +518,12 @@ void ImGuiExt::ImageRot90(ImGuiID id, ImTextureID user_texture_id, const ImVec2&
 
 ImVec4 ImGuiExt::BrightenColor(const ImVec4& col, float f) {
     return {col.x*f, col.y*f, col.z*f, col.w};
+}
+ImVec4 ImGuiExt::ColorFromInd(uint64_t ind, float saturation, float value) {
+    ImVec4 col;
+    ImGui::ColorConvertHSVtoRGB((float)(uint8_t)DataUtils::simpleHash(ind)/255, saturation, value, col.x, col.y, col.z);
+    col.w = 1;
+    return col;
 }
 
 void ImGuiExt::RightAlignText(const char* str, const char* str_end) {
