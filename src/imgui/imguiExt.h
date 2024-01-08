@@ -105,7 +105,7 @@ namespace ImGuiExt {
     ImVec4 ColorFromInd(uint64_t ind, float saturation = .7f, float value = 1);
 
     // right align
-    bool RA_Button(const char* str, const ImVec2& size_arg);
+    bool RA_Button(const char* str, const ImVec2& size_arg = {0,0});
     void RightAlignText(const char* str, const char* str_end = 0);
 }
 
