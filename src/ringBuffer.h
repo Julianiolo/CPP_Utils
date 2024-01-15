@@ -154,7 +154,7 @@ public:
     }
 
     bool operator!=(const RingBuffer& other) const {
-        return !(*this) == other;
+        return !((*this) == other);
     }
 
     Iterator<RingBuffer,T> begin() {
