@@ -6,6 +6,7 @@
 #include <vector>
 #include <array>
 #include <set>
+#include <unordered_set>
 #include <map>
 
 #include "DataUtils.h"
@@ -49,6 +50,8 @@ namespace DataUtils {
 	size_t approxSizeOf(const std::vector<T, Alloc>& v, SIZEFNC sf);
 	template<typename T, typename Traits, typename Alloc>
 	size_t approxSizeOf(const std::set<T, Traits, Alloc>& v);
+	template<typename T, typename Traits, typename Alloc>
+	size_t approxSizeOf(const std::unordered_set<T, Traits, Alloc>& v);
 	template<typename T1, typename T2>
 	size_t approxSizeOf(const std::pair<T1, T2>& v);
 	template<typename TK, typename TV, typename Traits, typename Alloc>
@@ -94,6 +97,13 @@ namespace DataUtils {
 	size_t approxSizeOf(const std::set<T,Traits,Alloc>& v) {
 		size_t sum = 0;
 		sum += sizeof(std::set<T, Traits, Alloc>);
+		for (const auto& e : v) sum += approxSizeOf(e);
+		return sum;
+	}
+	template<typename T, typename Traits, typename Alloc>
+	size_t approxSizeOf(const std::unordered_set<T,Traits,Alloc>& v) {
+		size_t sum = 0;
+		sum += sizeof(std::unordered_set<T, Traits, Alloc>);
 		for (const auto& e : v) sum += approxSizeOf(e);
 		return sum;
 	}
