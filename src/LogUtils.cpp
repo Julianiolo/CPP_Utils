@@ -6,7 +6,7 @@
 static std::pair<LogUtils::LogCallB, void*> staticLogContext = { 0,0 };
 
 void LogUtils::_log(uint8_t logLevel, std::pair<LogCallB,void*> context, const char* fileName, int lineNum, const char* module, const char* msg) noexcept {
-	if (context.first && context.second) {
+	if (context.first) {
 		context.first(logLevel, msg, fileName, lineNum, module, context.second);
 	}
 	else {
