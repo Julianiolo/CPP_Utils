@@ -69,6 +69,35 @@ std::string StringUtils::paddRight(const std::string& s, size_t length, char pad
 	return out;
 }
 
+void StringUtils::LEllipsisBuf(char* buf, size_t bufSize, const char* s, size_t maxLen) {
+	const size_t len = std::strlen(s);
+	if(len <= maxLen) {
+		std::strncpy(buf, s, bufSize);
+		buf[bufSize-1] = '\0';
+	}else{
+		std::snprintf(buf, bufSize, "...%s", s+(len-maxLen));
+	}
+}
+void StringUtils::REllipsisBuf(char* buf, size_t bufSize, const char* s, size_t maxLen) {
+	const size_t len = std::strlen(s);
+	if(len <= maxLen) {
+		std::strncpy(buf, s, bufSize);
+		buf[bufSize-1] = '\0';
+	}else{
+		if(bufSize<4) {
+			std::strncpy(buf, "...", bufSize);
+			if(bufSize>0)
+				buf[bufSize-1] = 0;
+			return;
+		}
+
+		const size_t l = std::min(maxLen-3, bufSize-4);
+		strncpy(buf, s, l);
+		strcpy(buf+l, "...");
+	}
+}
+
+
 std::pair<const char*, const char*> StringUtils::stripString(const char* str, const char* str_end) {
 	if (str_end == NULL)
 		str_end = str + std::strlen(str);

@@ -22,6 +22,9 @@ namespace StringUtils {
 	std::string paddLeft(const std::string& s, size_t length, char padd);
 	std::string paddRight(const std::string& s, size_t length, char padd);
 
+	void LEllipsisBuf(char* buf, size_t bufSize, const char* s, size_t maxLen);
+	void REllipsisBuf(char* buf, size_t bufSize, const char* s, size_t maxLen);
+
 	std::pair<const char*, const char*> stripString(const char* str, const char* str_end = 0);
 	std::string_view stripString_(const std::string_view& str);
 
