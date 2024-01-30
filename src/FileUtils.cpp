@@ -129,7 +129,7 @@ void FileUtils::fileModeToStr(char* buf, uint32_t mode) {
 }
 
 bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, char* buf2, size_t bufSize, std::function<bool(uint64_t,uint64_t)> callB) {
-	if (callB != NULL && callB(-1, -1))
+	if (callB != NULL && callB((uint64_t)-1, (uint64_t)-1))
 		return false;
 
 	DataUtils::AlignedBuffer buf;
@@ -146,7 +146,7 @@ bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, c
 		buf2 = &(buf.get())[bufSize];
 	}
 
-	if (callB != NULL && callB(-1, -1))
+	if (callB != NULL && callB((uint64_t)-1, (uint64_t)-1))
 		return false;
 
 	std::ifstream f1(path1, std::ios::binary);
