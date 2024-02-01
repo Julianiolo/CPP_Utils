@@ -34,6 +34,10 @@ namespace SystemUtils {
     
     int getErrorCode();
 
+    double winTimeToTimestamp(uint64_t val);
+
+    #define SU_HL_TO_U64(_x_) (li.LowPart = _x_##Low, li.HighPart = _x_##High, li.QuadPart)
+
     struct CallProcThread {
     private:
         std::string cmd;

@@ -18,6 +18,7 @@
 #endif
 
 #include <fstream>
+#include <cmath>
 
 #include "StringUtils.h"
 #include "DataUtils.h"
@@ -100,6 +101,10 @@ int SystemUtils::getErrorCode() {
 #endif
 }
 
+double SystemUtils::winTimeToTimestamp(uint64_t val) {
+	if (val == 0) return NAN;
+	return (double)val / 1e7 - 11644473600LL;
+}
 
 // ######################
 
