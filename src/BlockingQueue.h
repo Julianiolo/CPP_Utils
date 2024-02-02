@@ -60,7 +60,7 @@ public:
         return num_waiting;
     }
 
-    bool empty() const {
+    bool empty() {
         std::unique_lock<std::mutex> lock(mutex);
         return data.empty();
     }

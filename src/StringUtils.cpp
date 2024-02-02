@@ -187,6 +187,20 @@ const char* StringUtils::strcasestr(const char* str, const char* search, const c
 	return NULL;
 }
 
+char* StringUtils::ustrncpy(char* dst, const char* src, size_t len) {
+	return std::strncpy(dst, src, len);
+}
+wchar_t* StringUtils::ustrncpy(wchar_t* dst, const wchar_t* src, size_t len) {
+	return std::wcsncpy(dst, src, len);
+}
+
+char* StringUtils::ustrncat(char* dst, const char* src, size_t len) {
+	return std::strncat(dst, src, len);
+}
+wchar_t* StringUtils::ustrncat(wchar_t* dst, const wchar_t* src, size_t len) {
+	return std::wcsncat(dst, src, len);
+}
+
 void StringUtils::byteSizeToBufSmall(char* buf, size_t buf_size, uint64_t bytes) {
 	if(buf_size == 0) return;
 

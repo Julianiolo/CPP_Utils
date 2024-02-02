@@ -70,19 +70,11 @@ namespace StringUtils {
 		return std::wcslen(s);
 	}
 
-	inline char* ustrncpy(char* dst, const char* src, size_t len) {
-		return std::strncpy(dst, src, len);
-	}
-	inline wchar_t* ustrncpy(wchar_t* dst, const wchar_t* src, size_t len) {
-		return std::wcsncpy(dst, src, len);
-	}
+	char* ustrncpy(char* dst, const char* src, size_t len);
+	wchar_t* ustrncpy(wchar_t* dst, const wchar_t* src, size_t len);
 
-	inline char* ustrncat(char* dst, const char* src, size_t len) {
-		return std::strncat(dst, src, len);
-	}
-	inline wchar_t* ustrncat(wchar_t* dst, const wchar_t* src, size_t len) {
-		return std::wcsncat(dst, src, len);
-	}
+	char* ustrncat(char* dst, const char* src, size_t len);
+	wchar_t* ustrncat(wchar_t* dst, const wchar_t* src, size_t len);
 
 	
 
