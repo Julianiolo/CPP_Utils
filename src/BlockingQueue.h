@@ -17,7 +17,7 @@ private:
 
     volatile bool is_shutdown = false;
 
-    std::atomic<size_t> num_waiting;
+    std::atomic<size_t> num_waiting = 0;
 
 public:
 
