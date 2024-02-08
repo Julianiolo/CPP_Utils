@@ -38,19 +38,33 @@
 #error lel
 #endif
 
-inline void __assertion_failed__(const char* file, int line) {
-	printf("Assertion Failed! %s:%d\n", file, line);
+#ifdef __BASE_FILE__
+#define DU__FILE__ __BASE_FILE__
+#else
+#define DU__FILE__ __FILE__
+#endif
+
+inline void __assertion_failed__(const char* exp, const char* file, int line) {
+	printf("Assertion Failed: %s %s:%d\n", exp, file, line);
 	abort();
 }
-#ifdef _DEBUG
 #define DU_ASSERT(x) do {\
         if(!(x)){\
-            __assertion_failed__(__FILE__, __LINE__);\
+            __assertion_failed__(#x, DU__FILE__, __LINE__);\
+        }\
+    } while(0)
+
+#ifndef NDEBUG
+#define DU_DASSERT(x) do {\
+        if(!(x)){\
+            __assertion_failed__(#x, DU__FILE__, __LINE__);\
         }\
     } while(0)
 #else
-#define DU_ASSERT(x)
+#define DU_DASSERT(x)
 #endif
+
+
 
 #define DU_ASSERTEX(x, msg) do {\
 	if(!(x)){\
