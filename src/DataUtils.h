@@ -196,6 +196,49 @@ namespace DataUtils {
 		return from;
 	}
 
+	/*
+		CMP: (IT, IT) -> int
+			 0: Same
+			<0: a < b
+			>0: a > b
+
+	*/
+	template<typename IT, typename ENDA, typename ENDB, typename CMP,typename SAME_FUN, typename ONLY_FUN>
+	void compare_sorted(IT a, IT b, ENDA a_end, ENDB b_end, CMP cmp, SAME_FUN same, ONLY_FUN only) {
+		while(true) {
+			if(a_end(a)) {
+				while(!b_end(b)) {
+					only(b, 1);
+					++b;
+				}
+				return;
+			}
+
+			if(b_end(b)) {
+				while(!a_end(a)) {
+					only(a, 0);
+					++a;
+				}
+				return;
+			}
+
+			const int c = cmp(a, b);
+			if(c == 0) {
+				same(a,b);
+				++a;
+				++b;
+			}else{
+				if(c < 0) {
+					only(a,0);
+					++a;
+				}else {
+					only(b,1);
+					++b;
+				}
+			}
+		}
+	}
+
 	constexpr inline uint64_t simpleHash(uint64_t v){
 		// TODO: is probably trash
 
