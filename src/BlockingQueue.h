@@ -15,7 +15,7 @@ private:
     std::mutex mutex;
     std::condition_variable not_empty_cond;
 
-    volatile bool is_shutdown = false;
+    std::atomic<bool> is_shutdown = false;
 
     std::atomic<size_t> num_waiting = 0;
 
