@@ -1,7 +1,6 @@
 #ifndef __RINGBUFFER_H__
 #define __RINGBUFFER_H__
 
-#include <vector>
 #include <iterator>
 #include <stdexcept>
 
@@ -94,10 +93,8 @@ public:
 
     }
 
-    void initTo(const T& val) {
-        for(size_t i = 0; i<data.size();i++){
-            data[i] = val;
-        }
+    RingBuffer(size_t size_, const T& value) : data(size_, value) {
+
     }
 
     T& get(size_t ind) {

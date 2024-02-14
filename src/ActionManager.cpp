@@ -83,7 +83,7 @@ bool ActionManager::isActionActive(size_t id, ActivationState activationState) {
 	if(action.parts.size() == 0)
 		return false;
 
-	ActivationState testState = (activationState == ActivationState_Down || activationState == ActivationState_Pressed) ? ActivationState_Down : ActivationState_Up;
+	ActivationState testState = (ActivationState)((activationState == ActivationState_Down || activationState == ActivationState_Pressed) ? ActivationState_Down : ActivationState_Up);
 	for (size_t i = 0; i < action.parts.size(); i++) {
 		if (!testCallB(action.parts[i].type, action.parts[i].id, testState)) {
 			return false;
