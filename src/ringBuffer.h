@@ -8,14 +8,14 @@
 #include "StringUtils.h"
 #include "DataUtils.h"
 
-template<typename T>
+template<typename T, typename CONT = std::vector<T>>
 class RingBuffer{
 private:
-    std::vector<T> data;
+    CONT data;
     size_t ptr = 0;
     size_t len = 0;
 public:
-    template <typename IT, typename VT>
+    template <typename RB, typename VT>
     class Iterator {
         using iterator_category = std::random_access_iterator_tag;
         using difference_type = std::ptrdiff_t;
@@ -24,11 +24,11 @@ public:
         using reference = value_type&;
 
     private:
-        IT& rb;
+        RB& rb;
         size_t ind;
     public:
 
-        Iterator(IT& rb, size_t ind) : rb(rb), ind(ind) {
+        Iterator(RB& rb, size_t ind) : rb(rb), ind(ind) {
 
         }
 
