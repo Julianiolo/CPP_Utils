@@ -3,6 +3,7 @@
 
 #include <iterator>
 #include <stdexcept>
+#include <cstdbool>
 
 #include "StringUtils.h"
 #include "DataUtils.h"
@@ -14,6 +15,7 @@ private:
     size_t ptr = 0;
     size_t len = 0;
 public:
+
     template <typename RB, typename VT>
     class Iterator {
         using iterator_category = std::random_access_iterator_tag;
@@ -89,6 +91,11 @@ public:
         }
     };
 
+    // only use this constructor if your container already has a fixed size
+    RingBuffer() {
+
+    }
+
     RingBuffer(size_t size_) : data(size_) {
 
     }
@@ -98,29 +105,46 @@ public:
     }
 
     T& get(size_t ind) {
+#ifndef _NO_EXCEPTIONS
         if(ind > len)
             throw std::runtime_error("ringbuffer index out of bounds");
+#endif
         size_t ind_ = (ptr+data.size()-len+ind)%data.size();
         return data[ind_];
     }
     const T& get(size_t ind) const {
+#ifndef _NO_EXCEPTIONS
         if(ind > len)
             throw std::runtime_error("ringbuffer index out of bounds");
+#endif
         size_t ind_ = (ptr+data.size()-len+ind)%data.size();
         return data[ind_];
     }
 
     void add(const T& t) {
+#ifndef _NO_EXCEPTIONS
         if(ptr >= data.size())
             throw std::runtime_error("ptr out of bounds");
+#endif
+        data[ptr++] = t;
+        ptr %= data.size();
+        len = std::min(len+1,data.size());
+    }
+    void add(T&& t) {
+#ifndef _NO_EXCEPTIONS
+        if(ptr >= data.size())
+            throw std::runtime_error("ptr out of bounds");
+#endif
         data[ptr++] = t;
         ptr %= data.size();
         len = std::min(len+1,data.size());
     }
 
     void pop_front(size_t amt = 1) {
+#ifndef _NO_EXCEPTIONS
         if(amt > size()) 
             throw std::runtime_error(StringUtils::format("requested to many pop_front %" DU_PRIuSIZE "/%" DU_PRIuSIZE, amt, size()));
+#endif
         len -= amt;
     }
 
@@ -136,7 +160,17 @@ public:
         ptr = 0;
     }
 
+    T& first() {
+        return get(0);
+    }
+    const T& first() const {
+        return get(0);
+    }
+
     T& last() {
+        return get(size() - 1);
+    }
+    const T& last() const {
         return get(size() - 1);
     }
 
