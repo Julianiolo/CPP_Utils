@@ -4,7 +4,6 @@
 #ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS 1
 #endif
-#include <cinttypes>
 #include <iterator>
 #include <cstdint>
 #include <string>
@@ -18,31 +17,8 @@
 #include <string_view>
 #include <vector>
 
-// Print size_t macros
-#if SIZE_MAX == 0xffffull
-#define DU_PRIdSIZE PRId16
-#define DU_PRIuSIZE PRIu16
-#define DU_PRIxSIZE PRIx16
-#elif SIZE_MAX == 0xffffffffull
-#define DU_PRIdSIZE PRId32
-#define DU_PRIuSIZE PRIu32
-#define DU_PRIxSIZE PRIx32
-#elif SIZE_MAX == 0xffffffffffffffffull
-#define DU_PRIdSIZE PRId64
-#define DU_PRIuSIZE PRIu64
-#define DU_PRIxSIZE PRIx64
-#else
-#define DU_PRIdSIZE "d"
-#define DU_PRIuSIZE "u"
-#define DU_PRIxSIZE "x"
-#error lel
-#endif
+#include "CompilerUtils.h"
 
-#ifdef __BASE_FILE__
-#define DU__FILE__ __BASE_FILE__
-#else
-#define DU__FILE__ __FILE__
-#endif
 
 inline void __assertion_failed__(const char* exp, const char* file, int line) {
 	printf("Assertion Failed: %s %s:%d\n", exp, file, line);
@@ -81,44 +57,7 @@ inline void __assertion_failed__(const char* exp, const char* file, int line) {
 
 #define DU_ARRAYSIZE(arr) (sizeof(arr)/sizeof(arr[0]))
 
-#define DU_UNUSED(x) do { (void)(x); } while(0)
 
-#if __cplusplus >= 201703L
-#define DU_FALLTHROUGH [[fallthrough]]
-#else
-#define DU_FALLTHROUGH // fall through
-#endif
-
-#define DU_USE_PREDICTION_INDICATORS 1
-
-#if DU_USE_PREDICTION_INDICATORS
-#if __cplusplus >= 202002L
-#define DU_LIKELY [[likely]]
-#define DU_UNLIKELY [[unlikely]]
-
-#define DU_CLIKELY(_x_) _x_
-#define DU_CUNLIKELY(_x_) _x_
-#else
-#define DU_LIKELY
-#define DU_UNLIKELY
-
-#if defined(__GNUC__) || defined(__CLANG__)
-#define DU_CLIKELY(_x_) __builtin_expect(_x_, 1)
-#define DU_CUNLIKELY(_x_) __builtin_expect(_x_, 0)
-#else
-#define DU_CLIKELY(_x_) _x_
-#define DU_CUNLIKELY(_x_) _x_
-#endif
-#endif
-#else
-#define DU_LIKELY
-#define DU_UNLIKELY
-#define DU_CLIKELY(_x_) _x_
-#define DU_CUNLIKELY(_x_) _x_
-#endif
-
-#define DU_IF_LIKELY(_x_) if(DU_CLIKELY(_x_)) DU_LIKELY
-#define DU_IF_UNLIKELY(_x_) if(DU_CUNLIKELY(_x_)) DU_UNLIKELY
 
 
 // https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
@@ -327,15 +266,15 @@ namespace DataUtils {
 		return out;
 	}
 
-	template<size_t bytes, typename T = uint64_t, bool LSB = false>
+	template<size_t nbytes, typename T = uint64_t, bool LSB = false>
 	void intToBuf(const T& t, void* buf_) {
 		uint8_t* buf = (uint8_t*)buf_;
 		if(!LSB) {  // big endian
-			for(size_t i = 0; i<bytes; i++) {
-				buf[i] = (uint8_t)(t >> (bytes - i - 1)*8);
+			for(size_t i = 0; i<nbytes; i++) {
+				buf[i] = (uint8_t)(t >> (nbytes - i - 1)*8);
 			}
 		}else { // little endian
-			for(size_t i = 0; i<bytes; i++) {
+			for(size_t i = 0; i<nbytes; i++) {
 				buf[i] = (uint8_t)(t >> i*8);
 			}
 		}
@@ -363,7 +302,7 @@ namespace DataUtils {
 		T& get() { return val; };
 	};
 
-	class ByteStream {
+	class ReadByteStream {
 	public:
 		class NoDataLeftException : public std::runtime_error {
 		public:
@@ -379,7 +318,7 @@ namespace DataUtils {
 
 		size_t off;
 
-		ByteStream(const uint8_t* data, size_t dataLen, bool isLsbFirst = true, size_t startOff = 0);
+		ReadByteStream(const uint8_t* data, size_t dataLen, bool isLsbFirst = true, size_t startOff = 0);
 
 		void setIsLsbFirst(bool isLsbFirst);
 		void setLen(size_t len);
@@ -397,6 +336,31 @@ namespace DataUtils {
 
 		bool canReadAmt(size_t amt) const;
 		bool hasLeft() const;
+	};
+
+	class WriteByteStream {
+	public:
+		uint8_t* data;
+		size_t off;
+		size_t dataLen;
+		bool lsbFirst;
+
+		WriteByteStream(uint8_t* data, size_t dataLen, bool lsbFirst = false);
+
+		void write(uint8_t value);
+		void write(int8_t value);
+		void write(uint16_t value);
+		void write(int16_t value);
+		void write(uint32_t value);
+		void write(int32_t value);
+		void write(uint64_t value);
+		void write(int64_t value);
+
+		void writeBytes(const uint8_t* buf, size_t bufLen);
+
+	private:
+		template<typename T>
+		void writeInt(T value);
 	};
 
 	namespace EditMemory {

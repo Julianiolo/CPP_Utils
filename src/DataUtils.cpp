@@ -25,24 +25,24 @@ size_t DataUtils::AlignedBuffer::getSize() const {
 	return size;
 }
 
-DataUtils::ByteStream::NoDataLeftException::NoDataLeftException(size_t off, size_t getAmt, size_t dataLen) : std::runtime_error(StringUtils::format("Trying to get %" DU_PRIuSIZE " Bytes but only %" DU_PRIuSIZE " are left! total: %" DU_PRIuSIZE, getAmt, dataLen-off,dataLen)), 
+DataUtils::ReadByteStream::NoDataLeftException::NoDataLeftException(size_t off, size_t getAmt, size_t dataLen) : std::runtime_error(StringUtils::format("Trying to get %" DU_PRIuSIZE " Bytes but only %" DU_PRIuSIZE " are left! total: %" DU_PRIuSIZE, getAmt, dataLen-off,dataLen)), 
 off(off), getAmt(getAmt), dataLen(dataLen) 
 {
 
 }
 
-DataUtils::ByteStream::ByteStream(const uint8_t* data, size_t dataLen, bool isLsbFirst, size_t startOff) : data(data), dataLen(dataLen), lsbFirst(isLsbFirst), off(startOff) {
+DataUtils::ReadByteStream::ReadByteStream(const uint8_t* data, size_t dataLen, bool isLsbFirst, size_t startOff) : data(data), dataLen(dataLen), lsbFirst(isLsbFirst), off(startOff) {
 
 }
 
-void DataUtils::ByteStream::setIsLsbFirst(bool isLsbFirst) {
+void DataUtils::ReadByteStream::setIsLsbFirst(bool isLsbFirst) {
 	lsbFirst = isLsbFirst;
 }
-void DataUtils::ByteStream::setLen(size_t len) {
+void DataUtils::ReadByteStream::setLen(size_t len) {
 	dataLen = len;
 }
 
-uint64_t DataUtils::ByteStream::getInt(size_t numBytes) {
+uint64_t DataUtils::ReadByteStream::getInt(size_t numBytes) {
 	if (off + numBytes > dataLen)
 		throw NoDataLeftException(off, numBytes, dataLen);
 
@@ -64,7 +64,7 @@ uint64_t DataUtils::ByteStream::getInt(size_t numBytes) {
 
 	return out;
 }
-uint8_t DataUtils::ByteStream::getByte(bool advance) {
+uint8_t DataUtils::ReadByteStream::getByte(bool advance) {
 	if (off >= dataLen)
 		throw NoDataLeftException(off, 1, dataLen);
 
@@ -75,13 +75,13 @@ uint8_t DataUtils::ByteStream::getByte(bool advance) {
 
 	return res;
 }
-uint8_t DataUtils::ByteStream::getByteAt(size_t off_) const{
+uint8_t DataUtils::ReadByteStream::getByteAt(size_t off_) const{
 	if (off_ >= dataLen)
 		throw std::runtime_error(StringUtils::format("Index out of bounds: %" DU_PRIuSIZE " (len: %" DU_PRIuSIZE ")", off_, dataLen));
 	return data[off_];
 }
 
-std::string_view DataUtils::ByteStream::getBytes(size_t amt) {
+std::string_view DataUtils::ReadByteStream::getBytes(size_t amt) {
 	if (off + amt > dataLen)
 		throw NoDataLeftException(off, amt, dataLen);
 
@@ -89,14 +89,14 @@ std::string_view DataUtils::ByteStream::getBytes(size_t amt) {
 	off += amt;
 	return res;
 }
-void DataUtils::ByteStream::read(uint8_t* dest, size_t amt) {
+void DataUtils::ReadByteStream::read(uint8_t* dest, size_t amt) {
 	if (off + amt > dataLen)
 		throw NoDataLeftException(off, amt, dataLen);
 
 	std::memcpy(dest, data + off, amt);
 	off += amt;
 }
-std::string_view DataUtils::ByteStream::readStr(char term, bool stopOnEnd) {
+std::string_view DataUtils::ReadByteStream::readStr(char term, bool stopOnEnd) {
 	const char* start = (const char*)data + off;
 	while (true) {
 		if(off >= dataLen) {
@@ -112,28 +112,84 @@ std::string_view DataUtils::ByteStream::readStr(char term, bool stopOnEnd) {
 	}
 }
 
-void DataUtils::ByteStream::advance(size_t amt) {
+void DataUtils::ReadByteStream::advance(size_t amt) {
 	if (off + amt > dataLen)
 		throw NoDataLeftException(off, amt, dataLen);
 
 	off += amt;
 }
-void DataUtils::ByteStream::goTo(size_t offset) {
+void DataUtils::ReadByteStream::goTo(size_t offset) {
 	if (offset > dataLen)
 		throw NoDataLeftException(off, offset-off, dataLen);
 
 	off = offset;
 }
-size_t DataUtils::ByteStream::getOff() const {
+size_t DataUtils::ReadByteStream::getOff() const {
 	return off;
 }
 
-bool DataUtils::ByteStream::canReadAmt(size_t amt) const {
+bool DataUtils::ReadByteStream::canReadAmt(size_t amt) const {
 	return off + amt < dataLen;
 }
-bool DataUtils::ByteStream::hasLeft() const {
+bool DataUtils::ReadByteStream::hasLeft() const {
 	return off < dataLen;
 }
+
+
+DataUtils::WriteByteStream::WriteByteStream(uint8_t* data, size_t dataLen, bool lsbFirst) : data(data), off(0), dataLen(dataLen), lsbFirst(lsbFirst) {
+
+}
+
+template<typename T>
+void DataUtils::WriteByteStream::writeInt(T value) {
+	constexpr const size_t len = sizeof(T);
+	if(off+len > dataLen)
+		abort();
+	
+	if(lsbFirst) {
+		DataUtils::intToBuf<len,T,true>(value, data+off);
+	}else{
+		DataUtils::intToBuf<len,T,false>(value, data+off);
+	}
+	off += len;
+}
+
+void DataUtils::WriteByteStream::write(uint8_t value) {
+	writeInt(value);
+}
+void DataUtils::WriteByteStream::write(int8_t value) {
+	write((uint8_t)value);
+}
+void DataUtils::WriteByteStream::write(uint16_t value) {
+	writeInt(value);
+}
+void DataUtils::WriteByteStream::write(int16_t value) {
+	write((uint16_t)value);
+}
+void DataUtils::WriteByteStream::write(uint32_t value) {
+	writeInt(value);
+}
+void DataUtils::WriteByteStream::write(int32_t value) {
+	write((uint32_t)value);
+}
+void DataUtils::WriteByteStream::write(uint64_t value) {
+	writeInt(value);
+}
+void DataUtils::WriteByteStream::write(int64_t value) {
+	write((uint64_t)value);
+}
+
+void DataUtils::WriteByteStream::writeBytes(const uint8_t* buf, size_t bufLen) {
+	if(off+bufLen > dataLen)
+		abort();
+	
+	std::memcpy(data+off, buf, bufLen);
+	off += bufLen;
+}
+
+
+
+
 
 uint64_t DataUtils::EditMemory::readValue(const uint8_t* data, size_t dataLen, size_t editAddr, uint8_t editType, uint8_t editEndian) {
 	DU_ASSERTEX(data, "data is null");
