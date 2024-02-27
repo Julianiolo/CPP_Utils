@@ -26,7 +26,7 @@ public:
         }
     }
 
-    BitArray operator|=(const BitArray<Size>& other) {
+    BitArray& operator|=(const BitArray<Size>& other) {
         for(size_t i = 0; i<data.size(); i++) {
             data[i] |= other.data[i];
         }

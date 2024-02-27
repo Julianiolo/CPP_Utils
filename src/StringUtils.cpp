@@ -56,7 +56,26 @@ std::string StringUtils::replace(const char* str, const char* old, const char* v
 
 	return out;
 }
+std::string StringUtils::replace(const char* str, char old, char val, const char* str_end) {
+	if(str_end == NULL)
+		str_end = str + std::strlen(str);
+	std::string s(str, str_end);
+	replace_(&s[0], old, val, &s[s.size()]);
+	return s;
+}
+void StringUtils::replace_(char* str, char old, char val, const char* str_end) {
+	if(str_end == NULL)
+		str_end = str + std::strlen(str);
+	const size_t len = str_end - str;
 
+	char* ptr = str;
+	while (true) {
+		char* occ = (char*)std::memchr(ptr, old, len);
+		if (occ == NULL) break;
+		*occ = val;
+		ptr = occ;
+	}
+}
 
 std::string StringUtils::paddLeft(const std::string& s, size_t length, char padd) {//https://stackoverflow.com/a/667236
 	std::string out = s;
