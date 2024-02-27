@@ -241,7 +241,7 @@ void StringUtils::byteSizeToBufSmall(char* buf, size_t buf_size, uint64_t bytes)
 		div_factor = 1;
 	}
 
-	snprintf(buf, buf_size, "%" DU_PRIuSIZE "%sB", MathUtils::ceil_div(bytes, div_factor), prefixes[prefix]);
+	snprintf(buf, buf_size, "%" CU_PRIuSIZE "%sB", MathUtils::ceil_div(bytes, div_factor), prefixes[prefix]);
 }
 
 
@@ -1009,11 +1009,11 @@ std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* s
 	for (size_t i = 0; i < strl; i++) {
 		unsigned char c = (unsigned char)str[i];
 		if (c == 0 || c > 127) {
-			throw std::runtime_error(StringUtils::format("Couldn't load from Hex, because it contained a non ASCII character (0x%02x at %" DU_PRIuSIZE ")", c, i));
+			throw std::runtime_error(StringUtils::format("Couldn't load from Hex, because it contained a non ASCII character (0x%02x at %" CU_PRIuSIZE ")", c, i));
 		}
 	}
 
-	DataUtils::ByteStream stream((const uint8_t*)str, strl);
+	DataUtils::ReadByteStream stream((const uint8_t*)str, strl);
 
 	std::vector<uint8_t> res;
 
@@ -1027,7 +1027,7 @@ std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* s
 			std::string_view byteCountStr = stream.getBytes(2);
 			if (!StringUtils::isValidBaseNum(16, byteCountStr.data(), byteCountStr.data() + 2))
 				throw std::runtime_error(
-					StringUtils::format("byte count at %" DU_PRIuSIZE " contains non hex values: \"%s\"", 
+					StringUtils::format("byte count at %" CU_PRIuSIZE " contains non hex values: \"%s\"", 
 						stream.getOff()-2, std::string(byteCountStr).c_str())
 				);
 			byteCount = StringUtils::hexStrToUIntLen<uint8_t>(byteCountStr.data(), 2);
@@ -1039,7 +1039,7 @@ std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* s
 			std::string_view addrStr = stream.getBytes(4);
 			if (!StringUtils::isValidBaseNum(16, addrStr.data(), addrStr.data() + 4))
 				throw std::runtime_error(
-					StringUtils::format("addr at %" DU_PRIuSIZE " contains non hex values: \"%s\"", 
+					StringUtils::format("addr at %" CU_PRIuSIZE " contains non hex values: \"%s\"", 
 						stream.getOff()-4, std::string(addrStr).c_str())
 				);
 			uint8_t addrH = StringUtils::hexStrToUIntLen<uint8_t>(addrStr.data(), 2);
@@ -1053,7 +1053,7 @@ std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* s
 			std::string_view typeStr = stream.getBytes(2);
 			if (!StringUtils::isValidBaseNum(16, typeStr.data(), typeStr.data() + 2))
 				throw std::runtime_error(
-					StringUtils::format("type at %" DU_PRIuSIZE " contains non hex values: \"%s\"", 
+					StringUtils::format("type at %" CU_PRIuSIZE " contains non hex values: \"%s\"", 
 						stream.getOff()-2, std::string(typeStr).c_str())
 				);
 			type = StringUtils::hexStrToUIntLen<uint8_t>(typeStr.data(), 2);
@@ -1063,7 +1063,7 @@ std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* s
 		std::string_view byteStr = stream.getBytes((size_t)byteCount * 2);
 		if (!StringUtils::isValidBaseNum(16, byteStr.data(), byteStr.data() + (size_t)byteCount*2))
 			throw std::runtime_error(
-				StringUtils::format("data at %" DU_PRIuSIZE " contains non hex values: \"%s\"", 
+				StringUtils::format("data at %" CU_PRIuSIZE " contains non hex values: \"%s\"", 
 					stream.getOff()-(size_t)byteCount*2, std::string(byteStr).c_str())
 			);
 		for (uint8_t i = 0; i < byteCount; i++) {
@@ -1077,7 +1077,7 @@ std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* s
 			std::string_view checkStr = stream.getBytes(2);
 			if (!StringUtils::isValidBaseNum(16, checkStr.data(), checkStr.data() + 2))
 				throw std::runtime_error(
-					StringUtils::format("checksum at %" DU_PRIuSIZE " contains non hex values: \"%s\"", 
+					StringUtils::format("checksum at %" CU_PRIuSIZE " contains non hex values: \"%s\"", 
 						stream.getOff()-2, std::string(checkStr).c_str())
 				);
 			checkVal = StringUtils::hexStrToUIntLen<uint8_t>(checkStr.data(), 2);
@@ -1085,7 +1085,7 @@ std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* s
 		}
 		
 		if (checksum != 0)
-			throw std::runtime_error(StringUtils::format("checksum doesnt match (%u) at %" DU_PRIuSIZE, (uint32_t)checksum, stream.getOff()));
+			throw std::runtime_error(StringUtils::format("checksum doesnt match (%u) at %" CU_PRIuSIZE, (uint32_t)checksum, stream.getOff()));
 
 		while (stream.hasLeft()) {
 			char c = stream.getByte(false);

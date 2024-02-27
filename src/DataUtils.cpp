@@ -25,7 +25,8 @@ size_t DataUtils::AlignedBuffer::getSize() const {
 	return size;
 }
 
-DataUtils::ReadByteStream::NoDataLeftException::NoDataLeftException(size_t off, size_t getAmt, size_t dataLen) : std::runtime_error(StringUtils::format("Trying to get %" DU_PRIuSIZE " Bytes but only %" DU_PRIuSIZE " are left! total: %" DU_PRIuSIZE, getAmt, dataLen-off,dataLen)), 
+DataUtils::ReadByteStream::NoDataLeftException::NoDataLeftException(size_t off, size_t getAmt, size_t dataLen) 
+	: std::runtime_error(StringUtils::format("Trying to get %" CU_PRIuSIZE " Bytes but only %" CU_PRIuSIZE " are left! total: %" CU_PRIuSIZE, getAmt, dataLen-off,dataLen)), 
 off(off), getAmt(getAmt), dataLen(dataLen) 
 {
 
@@ -77,7 +78,7 @@ uint8_t DataUtils::ReadByteStream::getByte(bool advance) {
 }
 uint8_t DataUtils::ReadByteStream::getByteAt(size_t off_) const{
 	if (off_ >= dataLen)
-		throw std::runtime_error(StringUtils::format("Index out of bounds: %" DU_PRIuSIZE " (len: %" DU_PRIuSIZE ")", off_, dataLen));
+		throw std::runtime_error(StringUtils::format("Index out of bounds: %" CU_PRIuSIZE " (len: %" CU_PRIuSIZE ")", off_, dataLen));
 	return data[off_];
 }
 
@@ -193,7 +194,7 @@ void DataUtils::WriteByteStream::writeBytes(const uint8_t* buf, size_t bufLen) {
 
 uint64_t DataUtils::EditMemory::readValue(const uint8_t* data, size_t dataLen, size_t editAddr, uint8_t editType, uint8_t editEndian) {
 	DU_ASSERTEX(data, "data is null");
-	DU_ASSERTEX(dataLen > 0 && editAddr < dataLen, StringUtils::format("EditMemory: size too small: trying to read at %" DU_PRIuSIZE " of %" DU_PRIuSIZE "bytes", editAddr, dataLen));
+	DU_ASSERTEX(dataLen > 0 && editAddr < dataLen, StringUtils::format("EditMemory: size too small: trying to read at %" CU_PRIuSIZE " of %" CU_PRIuSIZE "bytes", editAddr, dataLen));
 	uint64_t res = 0;
 	uint16_t bytesToCopy = 0;
 	switch (editType) {
@@ -217,7 +218,7 @@ uint64_t DataUtils::EditMemory::readValue(const uint8_t* data, size_t dataLen, s
 			for (size_t i = 0; i < bytesToCopy; i++) {
 				size_t offset = editAddr + (editEndian == EditEndian_Big ? (size_t)i : (bytesToCopy - (size_t)i - 1));
 				if(offset >= dataLen) {
-					throw std::runtime_error(StringUtils::format("EditMemory: size too small: %" DU_PRIuSIZE ", requested: %" DU_PRIuSIZE, dataLen, offset));
+					throw std::runtime_error(StringUtils::format("EditMemory: size too small: %" CU_PRIuSIZE ", requested: %" CU_PRIuSIZE, dataLen, offset));
 				}
 				res <<= 8;
 				res |= data[offset];
@@ -229,7 +230,7 @@ uint64_t DataUtils::EditMemory::readValue(const uint8_t* data, size_t dataLen, s
 
 std::string DataUtils::EditMemory::readString(const uint8_t* data, size_t dataLen, size_t editAddr, bool editReversed) {
 	DU_ASSERTEX(data, "data is null");
-	DU_ASSERTEX(dataLen > 0 && editAddr < dataLen, StringUtils::format("EditMemory: size too small: trying to read at %" DU_PRIuSIZE " of %" DU_PRIuSIZE "bytes", editAddr, dataLen));
+	DU_ASSERTEX(dataLen > 0 && editAddr < dataLen, StringUtils::format("EditMemory: size too small: trying to read at %" CU_PRIuSIZE " of %" CU_PRIuSIZE "bytes", editAddr, dataLen));
 	size_t i = editAddr;
 	if (!editReversed) {
 		while (true) {
@@ -239,7 +240,7 @@ std::string DataUtils::EditMemory::readString(const uint8_t* data, size_t dataLe
 				break;
 
 			if (!StringUtils::isprint(c)) {
-				throw std::runtime_error(StringUtils::format("not a valid character: %u at %" DU_PRIuSIZE, (uint8_t)c, i));
+				throw std::runtime_error(StringUtils::format("not a valid character: %u at %" CU_PRIuSIZE, (uint8_t)c, i));
 			}
 
 			i++;
@@ -258,7 +259,7 @@ std::string DataUtils::EditMemory::readString(const uint8_t* data, size_t dataLe
 				break;
 
 			if (!StringUtils::isprint(c)) {
-				throw std::runtime_error(StringUtils::format("not a valid character: %u at %" DU_PRIuSIZE, (uint8_t)c, i));
+				throw std::runtime_error(StringUtils::format("not a valid character: %u at %" CU_PRIuSIZE, (uint8_t)c, i));
 			}
 
 			if (i == 0) {
@@ -281,7 +282,7 @@ void DataUtils::EditMemory::writeValue(size_t addr, uint64_t val, const std::str
 	const size_t maxSize = dataLen - addr;
 
 	if (maxSize == 0) {
-		throw std::runtime_error(StringUtils::format("Not enough bytes present: only got %" DU_PRIuSIZE, maxSize));
+		throw std::runtime_error(StringUtils::format("Not enough bytes present: only got %" CU_PRIuSIZE, maxSize));
 	}
 
 	uint16_t bytesToCopy = 0;
@@ -311,7 +312,7 @@ void DataUtils::EditMemory::writeValue(size_t addr, uint64_t val, const std::str
 
 	edit_cpy_tmpval:
 		if (bytesToCopy > maxSize) {
-			throw std::runtime_error(StringUtils::format("Not enough bytes present: requested %" DU_PRIuSIZE ", got %" DU_PRIuSIZE, bytesToCopy, maxSize));
+			throw std::runtime_error(StringUtils::format("Not enough bytes present: requested %" CU_PRIuSIZE ", got %" CU_PRIuSIZE, bytesToCopy, maxSize));
 		}
 		for (size_t i = 0; i < bytesToCopy; i++) {
 			size_t offset = editEndian == EditEndian_Big ? (size_t)i : (bytesToCopy - (size_t)i - 1);
@@ -327,7 +328,7 @@ void DataUtils::EditMemory::writeValue(size_t addr, uint64_t val, const std::str
 			len++;
 
 		if (bytesToCopy > maxSize) {
-			throw std::runtime_error(StringUtils::format("Not enough bytes present: requested %" DU_PRIuSIZE ", got %" DU_PRIuSIZE, bytesToCopy, maxSize));
+			throw std::runtime_error(StringUtils::format("Not enough bytes present: requested %" CU_PRIuSIZE ", got %" CU_PRIuSIZE, bytesToCopy, maxSize));
 		}
 		for (size_t i = 0; i < len; i++) {
 			size_t offset = !editReversed ? (size_t)i : (len - (size_t)i - 1);
@@ -339,15 +340,15 @@ void DataUtils::EditMemory::writeValue(size_t addr, uint64_t val, const std::str
 
 	case EditType_bytestream:
 		if (editStr.length() / 2 > maxSize) {
-			throw std::runtime_error(StringUtils::format("Not enough bytes present: requested %" DU_PRIuSIZE ", got %" DU_PRIuSIZE, bytesToCopy, maxSize));
+			throw std::runtime_error(StringUtils::format("Not enough bytes present: requested %" CU_PRIuSIZE ", got %" CU_PRIuSIZE, bytesToCopy, maxSize));
 		}
 		if (editStr.length() % 2 != 0) {
-			throw std::runtime_error(StringUtils::format("bytestream invalid, must be of even length! got %" DU_PRIuSIZE, editStr.length()));
+			throw std::runtime_error(StringUtils::format("bytestream invalid, must be of even length! got %" CU_PRIuSIZE, editStr.length()));
 		}
 		for (size_t i = 0; i < editStr.length(); i++) {
 			const char c = editStr[i];
 			if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')))
-				throw std::runtime_error(StringUtils::format("character at %" DU_PRIuSIZE " is not a valid hex character: %c(0x%" PRIx8 ")", i, c, (uint8_t)c));
+				throw std::runtime_error(StringUtils::format("character at %" CU_PRIuSIZE " is not a valid hex character: %c(0x%" PRIx8 ")", i, c, (uint8_t)c));
 		}
 
 		for (size_t i = 0; i < editStr.length()/2; i++) {
