@@ -60,7 +60,7 @@ public:
 namespace DataUtils {
     template<size_t size>
     constexpr inline size_t approxSizeOf(const BitArray<size>& v) {
-        DU_UNUSED(v);
+        CU_UNUSED(v);
         return BitArray<size>::sizeBytes();
     }
 }

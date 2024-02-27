@@ -10,7 +10,7 @@
 #include <map>
 
 #include "DataUtils.h"
-#include "ringBuffer.h"
+#include "comps/ringBuffer.h"
 
 namespace DataUtils {
 	inline constexpr size_t approxSizeOf(int8_t v) { return sizeof(v); };
@@ -30,7 +30,7 @@ namespace DataUtils {
 
 	template<typename T>
 	constexpr size_t approxSizeOf(T* v) {
-		DU_UNUSED(v);
+		CU_UNUSED(v);
 		return sizeof(T*);
 	}
 	inline size_t approxSizeOf(const std::string& v) {

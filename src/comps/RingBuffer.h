@@ -143,7 +143,7 @@ public:
     void pop_front(size_t amt = 1) {
 #ifndef _NO_EXCEPTIONS
         if(amt > size()) 
-            throw std::runtime_error(StringUtils::format("requested to many pop_front %" DU_PRIuSIZE "/%" DU_PRIuSIZE, amt, size()));
+            throw std::runtime_error(StringUtils::format("requested to many pop_front %" CU_PRIuSIZE "/%" CU_PRIuSIZE, amt, size()));
 #endif
         len -= amt;
     }

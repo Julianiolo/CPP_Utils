@@ -82,8 +82,8 @@
 #define CU_CUNLIKELY(_x_) _x_
 #endif
 
-#define CU_IF_LIKELY(_x_) if(DU_CLIKELY(_x_)) DU_LIKELY
-#define CU_IF_UNLIKELY(_x_) if(DU_CUNLIKELY(_x_)) DU_UNLIKELY
+#define CU_IF_LIKELY(_x_) if(CU_CLIKELY(_x_)) CU_LIKELY
+#define CU_IF_UNLIKELY(_x_) if(CU_CUNLIKELY(_x_)) CU_UNLIKELY
 
 
 

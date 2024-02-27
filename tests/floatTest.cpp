@@ -141,6 +141,6 @@ int main() {
     auto end = std::chrono::high_resolution_clock::now();
     double time = MathUtils::durationToSeconds(end - start);
     printf("took %fs\n", time);
-    printf("%" DU_PRIuSIZE " runs => %es per run\n", cnt, time/cnt);
+    printf("%" CU_PRIuSIZE " runs => %es per run\n", cnt, time/cnt);
     return 0;
 }

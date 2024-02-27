@@ -258,7 +258,7 @@ void SystemUtils::DynamicThreadPool::addThreads(size_t n) {
 	std::unique_lock<std::mutex> lock(queue_mutex);
 	for (size_t i = 0; i < n; i++) {
 		num_currently_running++;
-		//printf("++: %" DU_PRIuSIZE "\n", num_currently_running.load());
+		//printf("++: %" CU_PRIuSIZE "\n", num_currently_running.load());
 		std::thread([this] {
 			threadRun();
 		}).detach();
@@ -336,7 +336,7 @@ void SystemUtils::DynamicThreadPool::threadRun() {
 
 stop_myself:
 	num_currently_running--;
-	//printf("--: %" DU_PRIuSIZE "\n", num_currently_running.load());
+	//printf("--: %" CU_PRIuSIZE "\n", num_currently_running.load());
 	return;
 }
 
