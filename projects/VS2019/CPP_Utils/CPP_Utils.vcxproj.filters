@@ -22,6 +22,9 @@
     <Filter Include="Source Files\raylib">
       <UniqueIdentifier>{239cd70b-4534-4b7f-9f80-991dfce8264f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\comp">
+      <UniqueIdentifier>{b422f836-3ee1-4980-acfb-95e63a4576a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\DataUtils.cpp">
@@ -31,9 +34,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\SystemUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\bitVector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\ActionManager.cpp">
@@ -51,6 +51,9 @@
     <ClCompile Include="..\..\..\src\FileUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\comps\bitVector.cpp">
+      <Filter>Source Files\comp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\SystemUtils.h">
@@ -60,15 +63,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\StringUtils.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\bitArray.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\bitVector.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\ringBuffer.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\ActionManager.h">
@@ -97,6 +91,21 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\FileUtils.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\comps\BitArray.h">
+      <Filter>Source Files\comp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\comps\bitVector.h">
+      <Filter>Source Files\comp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\comps\BlockingQueue.h">
+      <Filter>Source Files\comp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\comps\RingBuffer.h">
+      <Filter>Source Files\comp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\comps\StringTable.h">
+      <Filter>Source Files\comp</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
