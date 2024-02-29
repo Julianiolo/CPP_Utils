@@ -28,8 +28,7 @@ bool SystemUtils::revealInFileExplorer(const char* path_) {
 
 	std::string path = path_;
 
-	// cygwin hack to fix a "/cygdrive/c/..." to a "c:/..."
-#ifdef __CYGWIN__
+#ifdef __CYGWIN__ // cygwin hack to fix a "/cygdrive/c/..." to a "c:/..."
 	{
 		const char* searchFor = "/cygdrive/";
 		const size_t searchForLen = strlen(searchFor);
@@ -142,228 +141,18 @@ bool SystemUtils::CallProcThread::isRunning() {
     return f != nullptr;
 }
 bool SystemUtils::CallProcThread::hasData() {
-    while(!mutex.try_lock());
-    bool has = out.size() > 0;
-    mutex.unlock();
-    return has;
+	std::unique_lock lock(mutex);
+    return out.size() > 0;
 }
 
 void SystemUtils::CallProcThread::update() {
     char buf[2048];
     while(std::fgets(buf, sizeof(buf), f) != nullptr){
-        while(!mutex.try_lock());
+		std::unique_lock lock(mutex);
         out += buf;
-        mutex.unlock();
     }
     pclose(f);
     f = nullptr;
 }
 
 // ###############################################################
-
-SystemUtils::ThreadPool::ThreadPool(size_t num_threads) : num_threads(num_threads) {
-	if(num_threads == (decltype(num_threads))-1)
-		num_threads = std::thread::hardware_concurrency();
-}
-SystemUtils::ThreadPool::~ThreadPool() {
-	stop();
-}
-
-void SystemUtils::ThreadPool::start() {
-	if (threads.size() != 0) // already running
-		return;
-
-	should_terminate = false;
-
-	std::unique_lock<std::mutex> lock(queue_mutex);
-	threads.reserve(num_threads);
-	for (size_t i = 0; i < num_threads; i++) {
-		threads.push_back(std::thread([this] {
-			threadRun();
-		}));
-	}
-}
-void SystemUtils::ThreadPool::stop() {
-	{
-		std::unique_lock<std::mutex> lock(queue_mutex);
-		should_terminate = true;
-	}
-	mutex_condition.notify_all();
-	for (auto& thread : threads) {
-		thread.join();
-	}
-	threads.clear();
-}
-
-bool SystemUtils::ThreadPool::busy() {
-	bool busy;
-	{
-		std::unique_lock<std::mutex> lock(queue_mutex);
-		busy = !jobs.empty();
-	}
-	return busy;
-}
-bool SystemUtils::ThreadPool::running() const {
-	return threads.size() > 0;
-}
-
-void SystemUtils::ThreadPool::addJob(const std::function<void(void)>& job) {
-	{
-		std::unique_lock<std::mutex> lock(queue_mutex);
-		jobs.push(job);
-	}
-	mutex_condition.notify_one();
-}
-
-void SystemUtils::ThreadPool::threadRun() {
-	while (true) {
-		std::function<void(void)> job;
-		{
-			std::unique_lock<std::mutex> lock(queue_mutex);
-			if (should_terminate) {
-				return;
-			}
-
-			mutex_condition.wait(lock, [this] {
-				return !jobs.empty() || should_terminate;
-			});
-			if (should_terminate) {
-				return;
-			}
-			job = jobs.front();
-			jobs.pop();
-		}
-		job();
-	}
-}
-
-bool SystemUtils::ThreadPool::shouldStop() const {
-	return should_terminate;
-}
-
-
-// #######################################################
-
-
-
-SystemUtils::DynamicThreadPool::DynamicThreadPool(size_t num_threads) : num_threads(num_threads) {
-	if(num_threads == (decltype(num_threads))-1)
-		num_threads = std::thread::hardware_concurrency();
-}
-SystemUtils::DynamicThreadPool::~DynamicThreadPool() {
-	stop();
-}
-
-void SystemUtils::DynamicThreadPool::addThreads(size_t n) {
-	std::unique_lock<std::mutex> lock(queue_mutex);
-	for (size_t i = 0; i < n; i++) {
-		num_currently_running++;
-		//printf("++: %" CU_PRIuSIZE "\n", num_currently_running.load());
-		std::thread([this] {
-			threadRun();
-		}).detach();
-	}
-}
-
-void SystemUtils::DynamicThreadPool::start() {
-	if (num_currently_running != 0) // already running
-		return;
-
-	should_terminate = false;
-
-	addThreads(num_threads);
-}
-void SystemUtils::DynamicThreadPool::stop() {
-	{
-		std::unique_lock<std::mutex> lock(queue_mutex);
-		should_terminate = true;
-	}
-	mutex_condition.notify_all();
-
-	while(num_currently_running > 0) {
-		using namespace std::chrono_literals;
-		std::this_thread::sleep_for(100ms);
-	}
-}
-
-bool SystemUtils::DynamicThreadPool::amINotNeeded() const {
-	return num_currently_running > num_threads;
-}
-
-
-bool SystemUtils::DynamicThreadPool::busy() {
-	bool busy;
-	{
-		std::unique_lock<std::mutex> lock(queue_mutex);
-		busy = !jobs.empty();
-	}
-	return busy;
-}
-bool SystemUtils::DynamicThreadPool::running() {
-	return num_currently_running > 0;
-}
-
-void SystemUtils::DynamicThreadPool::addJob(const std::function<void(void)>& job) {
-	{
-		std::unique_lock<std::mutex> lock(queue_mutex);
-		jobs.push(job);
-	}
-	mutex_condition.notify_one();
-}
-
-void SystemUtils::DynamicThreadPool::threadRun() {
-	while (true) {
-		std::function<void(void)> job;
-		{
-			std::unique_lock<std::mutex> lock(queue_mutex);
-
-			if (should_terminate || amINotNeeded()) {
-				goto stop_myself;
-			}
-
-			mutex_condition.wait(lock, [this] {
-				return !jobs.empty() || should_terminate || amINotNeeded();
-			});
-
-			if (should_terminate || amINotNeeded()) {
-				goto stop_myself;
-			}
-			job = jobs.front();
-			jobs.pop();
-		}
-		job();
-	}
-
-stop_myself:
-	num_currently_running--;
-	//printf("--: %" CU_PRIuSIZE "\n", num_currently_running.load());
-	return;
-}
-
-size_t SystemUtils::DynamicThreadPool::getNumThreads() const {
-	return num_threads;
-}
-void SystemUtils::DynamicThreadPool::setNumThreads(size_t n) {
-	if(n == (decltype(n))-1)
-		n = std::thread::hardware_concurrency();
-
-	const size_t old_num_threads = num_threads;
-
-	num_threads = n;
-
-	if(should_terminate) // not started yet
-		return;
-	
-	if (n > old_num_threads) {	
-		addThreads(n - old_num_threads);
-	}
-	else {
-		for (size_t i = 0; i < old_num_threads - n; i++) {
-			mutex_condition.notify_one();
-		}
-	}
-}
-
-bool SystemUtils::DynamicThreadPool::shouldStop() const {
-	return should_terminate;
-}

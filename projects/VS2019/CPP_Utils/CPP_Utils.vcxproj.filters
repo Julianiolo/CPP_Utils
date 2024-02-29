@@ -22,7 +22,7 @@
     <Filter Include="Source Files\raylib">
       <UniqueIdentifier>{239cd70b-4534-4b7f-9f80-991dfce8264f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\comp">
+    <Filter Include="Source Files\comps">
       <UniqueIdentifier>{b422f836-3ee1-4980-acfb-95e63a4576a3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -52,7 +52,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\comps\bitVector.cpp">
-      <Filter>Source Files\comp</Filter>
+      <Filter>Source Files\comps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\comps\ThreadPool.cpp">
+      <Filter>Source Files\comps</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -93,19 +96,22 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\comps\BitArray.h">
-      <Filter>Source Files\comp</Filter>
+      <Filter>Source Files\comps</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\comps\bitVector.h">
-      <Filter>Source Files\comp</Filter>
+      <Filter>Source Files\comps</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\comps\BlockingQueue.h">
-      <Filter>Source Files\comp</Filter>
+      <Filter>Source Files\comps</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\comps\RingBuffer.h">
-      <Filter>Source Files\comp</Filter>
+      <Filter>Source Files\comps</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\comps\StringTable.h">
-      <Filter>Source Files\comp</Filter>
+      <Filter>Source Files\comps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\comps\ThreadPool.h">
+      <Filter>Source Files\comps</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
