@@ -391,7 +391,10 @@ bool ImGuiExt::Link(const char* str, const char* action_str, std::function<void(
     ImGui::PushStyleColor(ImGuiCol_Text, linkColor);
 
     ImGui::TextUnformatted(str);
-    if(ImGui::IsItemClicked())
+    if (ImGui::IsItemHovered())
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    const bool isClicked = ImGui::IsItemClicked();
+    if(isClicked)
         action(action_str ? action_str : str);
 
     ImRect r(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
@@ -400,7 +403,7 @@ bool ImGuiExt::Link(const char* str, const char* action_str, std::function<void(
     
     ImGui::PopStyleColor();
 
-    return ImGui::IsItemClicked();
+    return isClicked;
 }
 
 
