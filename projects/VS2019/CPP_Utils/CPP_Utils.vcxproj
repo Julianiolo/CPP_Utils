@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\ActionManager.cpp" />
     <ClCompile Include="..\..\..\src\comps\bitVector.cpp" />
+    <ClCompile Include="..\..\..\src\comps\ThreadPool.cpp" />
     <ClCompile Include="..\..\..\src\DataUtils.cpp" />
     <ClCompile Include="..\..\..\src\FileUtils.cpp" />
     <ClCompile Include="..\..\..\src\LogUtils.cpp" />
@@ -42,6 +43,7 @@
     <ClInclude Include="..\..\..\src\comps\BlockingQueue.h" />
     <ClInclude Include="..\..\..\src\comps\RingBuffer.h" />
     <ClInclude Include="..\..\..\src\comps\StringTable.h" />
+    <ClInclude Include="..\..\..\src\comps\ThreadPool.h" />
     <ClInclude Include="..\..\..\src\DataUtils.h" />
     <ClInclude Include="..\..\..\src\DataUtilsSize.h" />
     <ClInclude Include="..\..\..\src\FileUtils.h" />
