@@ -19,13 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\ActionManager.cpp" />
+    <ClCompile Include="..\..\..\src\comps\ActionManager.cpp" />
     <ClCompile Include="..\..\..\src\comps\bitVector.cpp" />
     <ClCompile Include="..\..\..\src\comps\ThreadPool.cpp" />
     <ClCompile Include="..\..\..\src\DataUtils.cpp" />
     <ClCompile Include="..\..\..\src\FileUtils.cpp" />
     <ClCompile Include="..\..\..\src\LogUtils.cpp" />
-    <ClCompile Include="..\..\..\src\StreamUtils.cpp" />
     <ClCompile Include="..\..\..\src\StringUtils.cpp" />
     <ClCompile Include="..\..\..\src\SystemUtils.cpp" />
     <ClCompile Include="..\..\..\tests\ringBufferTest.cpp">
@@ -36,8 +35,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\ActionManager.h" />
     <ClInclude Include="..\..\..\src\BitUtils.h" />
+    <ClInclude Include="..\..\..\src\comps\ActionManager.h" />
     <ClInclude Include="..\..\..\src\comps\BitArray.h" />
     <ClInclude Include="..\..\..\src\comps\bitVector.h" />
     <ClInclude Include="..\..\..\src\comps\BlockingQueue.h" />

@@ -9,18 +9,6 @@
 #include <cstring>
 
 namespace StreamUtils {
-    struct imem_streambuf : std::streambuf {
-        imem_streambuf(const char* data, size_t size);
-    };
-    
-    struct omem_streambuf : std::streambuf {
-    public:
-        std::vector<char> buf;
-        
-        std::streamsize xsputn(const char_type* s, std::streamsize n);
-        int_type overflow(int_type c);
-    };
-
     template<typename T>
     void write(std::ostream& stream, const T& val){
         if constexpr(

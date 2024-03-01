@@ -90,7 +90,7 @@ bool cppu::ThreadPool::shouldStop() const {
 
 
 cppu::DynamicThreadPool::DynamicThreadPool(size_t max_num_threads_, float thread_shutdown_time) : max_num_threads(max_num_threads_), thread_shutdown_time(thread_shutdown_time) {
-	if(max_num_threads == (decltype(max_num_threads))-1)
+	if(max_num_threads == (decltype(max_num_threads)::value_type)-1)
 		max_num_threads = std::thread::hardware_concurrency();
 }
 cppu::DynamicThreadPool::~DynamicThreadPool() {

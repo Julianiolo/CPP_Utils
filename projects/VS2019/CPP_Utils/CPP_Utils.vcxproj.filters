@@ -36,13 +36,7 @@
     <ClCompile Include="..\..\..\src\SystemUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\ActionManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\LogUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\StreamUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\tests\ringBufferTest.cpp">
@@ -57,6 +51,9 @@
     <ClCompile Include="..\..\..\src\comps\ThreadPool.cpp">
       <Filter>Source Files\comps</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\comps\ActionManager.cpp">
+      <Filter>Source Files\comps</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\SystemUtils.h">
@@ -66,9 +63,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\StringUtils.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\ActionManager.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\BitUtils.h">
@@ -111,6 +105,9 @@
       <Filter>Source Files\comps</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\comps\ThreadPool.h">
+      <Filter>Source Files\comps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\comps\ActionManager.h">
       <Filter>Source Files\comps</Filter>
     </ClInclude>
   </ItemGroup>

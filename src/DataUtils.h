@@ -68,10 +68,11 @@ inline void __assertion_failed__(const char* exp, const char* file, int line) {
 #define DU_HASHCC(_h_,_container_) DU_HASH_COMB(_h_,DataUtils::hash_bytes<decltype(_h_)>((_container_).size()?&_container_[0]:nullptr,(_container_).size()*sizeof((_container_)[0])))
 
 namespace DataUtils {
+	// find value, if not found return (size_t)-1; compare needs to be a function like object with (const T& a, size_t ind_of_b) -> int
 	template<typename T,typename CMP>
-	size_t binarySearchExlusive(size_t len, const T& value, CMP compare) {
+	size_t binarySearchExclusive(size_t len, const T& value, const CMP& compare) {
 		if (len == 0)
-			return -1;
+			return (size_t)-1;
 
 		size_t from = 0;
 		size_t to = len-1;
@@ -99,14 +100,14 @@ namespace DataUtils {
 			return from;
 
 	fail:
-		return -1;
+		return (size_t)-1;
 	}
 
 	// find value, if not found return where to insert it; compare needs to be a function like object with (const T& a, size_t ind_of_b) -> int
 	template<typename T,typename CMP>
-	constexpr inline size_t binarySearchInclusive(size_t len, const T& value, CMP compare) {
+	constexpr inline size_t binarySearchInclusive(size_t len, const T& value, const CMP& compare) {
 		if (len == 0)
-			return -1;
+			return 0;
 
 		size_t from = 0;
 		size_t to = len-1;
