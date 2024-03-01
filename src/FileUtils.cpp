@@ -128,6 +128,13 @@ void FileUtils::fileModeToStr(char* buf, uint32_t mode) {
 	buf[10] = '\0';
 }
 
+FileUtils::CmpFileError::CmpFileError(ErrSource src, const std::ios_base::failure& e) : src_(src), std::ios_base::failure(e) {
+
+}
+FileUtils::CmpFileError::ErrSource FileUtils::CmpFileError::src() const {
+	return src_;
+}
+
 bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, char* buf2, size_t bufSize, std::function<bool(uint64_t,uint64_t)> callB) {
 	if (callB != NULL && callB((uint64_t)-1, (uint64_t)-1))
 		return false;
@@ -138,7 +145,7 @@ bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, c
 			bufSize = (size_t)1 << 22;
 		}
 
-		constexpr size_t align_amt = 32;
+		constexpr size_t align_amt = 32; // way overkill lol
 
 		buf = DataUtils::AlignedBuffer(bufSize*2, align_amt);
 
@@ -149,49 +156,61 @@ bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, c
 	if (callB != NULL && callB((uint64_t)-1, (uint64_t)-1))
 		return false;
 
-	std::ifstream f1(path1, std::ios::binary);
-	if (!f1.good())
-		throw std::runtime_error(StringUtils::format("Error opening file: %s", path1));
+	CmpFileError::ErrSource src = CmpFileError::ErrSource::A;
 
-	std::ifstream f2(path2, std::ios::binary);
-	if (!f2.good())
-		throw std::runtime_error(StringUtils::format("Error opening file: %s", path2));
+	try {
+		constexpr auto A = CmpFileError::ErrSource::A;
+		constexpr auto B = CmpFileError::ErrSource::B;
 
-	f1.seekg(0, std::ios::end);
-	if (!f1.good()) throw std::runtime_error(StringUtils::format("Error reading size of file: %s", path1));
-	const uint64_t f1Size = f1.tellg();
-	if (!f1.good()) throw std::runtime_error(StringUtils::format("Error reading size of file: %s", path1));
-	f1.seekg(0, std::ios::beg);
-	if (!f1.good()) throw std::runtime_error(StringUtils::format("Error reading size of file: %s", path1));
+		std::ifstream f1;
+		std::ifstream f2;
 
-	f2.seekg(0, std::ios::end);
-	if (!f2.good()) throw std::runtime_error(StringUtils::format("Error reading size of file: %s", path2));
-	const uint64_t f2Size = f2.tellg();
-	if (!f2.good()) throw std::runtime_error(StringUtils::format("Error reading size of file: %s", path2));
-	f2.seekg(0, std::ios::beg);
-	if (!f2.good()) throw std::runtime_error(StringUtils::format("Error reading size of file: %s", path2));
+		src = A;
+		f1.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+		src = B;
+		f2.exceptions(std::ios_base::failbit | std::ios_base::badbit);
 
-	if (f1Size != f2Size)
-		return false;
+		src = A;
+		f1.open(path1, std::ios::binary);
 
-	if (callB != NULL && callB(0, f1Size))
-		return false;
+		src = B;
+		f2.open(path2, std::ios::binary);
 
-	for (uint64_t o = 0; o < f1Size; o+= bufSize) {
-		size_t readAmt = (size_t)std::min(f1Size - o, (uint64_t)bufSize);
+		src = A;
+		f1.seekg(0, std::ios::end);
+		const uint64_t f1Size = f1.tellg();
+		f1.seekg(0, std::ios::beg);
 
-		f1.read(buf1, readAmt);
-		if (!f1.good()) throw std::runtime_error(StringUtils::format("Error reading file: %s @ %" PRIu64, path1, o));
+		src = B;
+		f2.seekg(0, std::ios::end);
+		const uint64_t f2Size = f2.tellg();
+		f2.seekg(0, std::ios::beg);
 
-		f2.read(buf2, readAmt);
-		if (!f2.good()) throw std::runtime_error(StringUtils::format("Error reading file: %s @ %" PRIu64, path2, o));
-
-		if (std::memcmp(buf1, buf2, readAmt) != 0) {
+		if (f1Size != f2Size)
 			return false;
+
+		if (callB != NULL && callB(0, f1Size))
+			return false;
+
+		for (uint64_t o = 0; o < f1Size; o+= bufSize) {
+			size_t readAmt = (size_t)std::min(f1Size - o, (uint64_t)bufSize);
+
+			src = A;
+			f1.read(buf1, readAmt);
+
+			src = B;
+			f2.read(buf2, readAmt);
+
+			if (std::memcmp(buf1, buf2, readAmt) != 0) {
+				return false;
+			}
+
+			if (callB != NULL && callB(o+readAmt, f1Size))
+				return false;
 		}
-
-		if (callB != NULL && callB(o+readAmt, f1Size))
-			return false;
+	}
+	catch (const std::ios_base::failure& e) {
+		throw CmpFileError(src, e);
 	}
 
 	return true;

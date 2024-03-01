@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <ios>
 
 namespace FileUtils {
     bool checkHardlinkedTogether(const char* path1, const char* path2);
@@ -11,7 +12,21 @@ namespace FileUtils {
     char fileTypeModeToLetter(uint32_t mode);
     void fileModeToStr(char* buf, uint32_t mode); // buffer needs to be AT LEAST 11 bytes big
 
-    bool compareFiles(const char* path1, const char* path2, char* buf1=NULL, char* buf2=NULL, size_t bufSize=0, std::function<bool(uint64_t,uint64_t)> callB=NULL);
+    class CmpFileError : public std::ios_base::failure {
+    public:
+        enum class ErrSource : bool {
+            A = false,
+            B = true
+        };
+        ErrSource src_;
+        CmpFileError(ErrSource src, const std::ios_base::failure& e);
+
+        ErrSource src() const;
+    };
+    /*
+        callB is of form (uint64_t has_read, uint64_t total_size) -> bool; should return true, if comparing should be stopped
+    */
+    bool compareFiles(const char* pathA, const char* pathB, char* bufA=NULL, char* bufB=NULL, size_t bufSize=0, std::function<bool(uint64_t,uint64_t)> callB=NULL);
 
     class MappedFile {
     private:

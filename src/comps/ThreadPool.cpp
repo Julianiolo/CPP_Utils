@@ -144,11 +144,15 @@ bool cppu::DynamicThreadPool::running() {
 void cppu::DynamicThreadPool::addJob(const std::function<void(void)>& job) {
 	{
 		std::unique_lock<std::mutex> lock(queue_mutex);
-		jobs.push(job);
+		if (should_terminate) {
+			throw std::runtime_error("already shutdown");
+		}
 
 		if (num_currently_running < max_num_threads) {
 			addThreads(1);
 		}
+
+		jobs.push(job);
 	}
 	
 	mutex_condition.notify_one();
