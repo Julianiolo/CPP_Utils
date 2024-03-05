@@ -8,20 +8,17 @@
 #include <cstdint>
 #include <string>
 #include <functional>
-#include <queue>
 #include <mutex>
-#include <thread>
 #include <stdexcept>
 #include <string_view>
 #include <climits>
-#include <string_view>
 #include <vector>
 
 #include "CompilerUtils.h"
 
 
 inline void __assertion_failed__(const char* exp, const char* file, int line) {
-	printf("Assertion Failed: %s %s:%d\n", exp, file, line);
+	printf("Assertion Failed: %s [%s:%d]\n", exp, file, line);
 	abort();
 }
 #define DU_ASSERT(x) do {\
@@ -91,7 +88,7 @@ namespace DataUtils {
 
 			int cmp = compare(value, mid);
 
-			if (cmp == 0) {
+			CU_IF_UNLIKELY(cmp == 0) {
 				return mid;
 			}
 			else if (cmp < 0) {
@@ -126,7 +123,7 @@ namespace DataUtils {
 
 			int cmp = compare(value, mid);
 
-			if (cmp == 0) {
+			CU_IF_UNLIKELY(cmp == 0) {
 				return mid;
 			}
 			else if (cmp < 0) {

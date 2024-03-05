@@ -5,7 +5,9 @@
 #include <stdexcept>
 #include <cstdbool>
 
+#ifndef _NO_EXCEPTIONS
 #include "StringUtils.h"
+#endif
 #include "DataUtils.h"
 
 template<typename T, typename CONT = std::vector<T>>
@@ -135,7 +137,7 @@ public:
         if(ptr >= data.size())
             throw std::runtime_error("ptr out of bounds");
 #endif
-        data[ptr++] = t;
+        data[ptr++] = std::move(t);
         ptr %= data.size();
         len = std::min(len+1,data.size());
     }

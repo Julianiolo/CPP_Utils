@@ -27,7 +27,7 @@ public:
     }
     void push(T&& t) {
         std::unique_lock<std::mutex> lock(mutex);
-        data.push(t);
+        data.push(std::move(t));
     }
 
     std::optional<T> take() {

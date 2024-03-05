@@ -124,6 +124,7 @@ namespace StringUtils {
 	std::string addThousandsSeperator(const std::string& str, const char* seperator = ",");
 	void addThousandsSeperatorBuf(char* buf, size_t size, uint64_t num, const char* seperator = ",");
 
+	int getDecimalsForPrecision(double v, uint8_t n_precision);
 
 	/*
 		Conversion functions

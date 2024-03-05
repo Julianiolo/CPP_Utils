@@ -1,8 +1,6 @@
 #include <iostream>
-#include "../src/ringBuffer.h"
+#include "../src/comps/RingBuffer.h"
 #include "../src/DataUtils.h"
-
-
 
 int main() {
 	RingBuffer<uint32_t> buf(100);
@@ -25,6 +23,7 @@ int main() {
 	std::vector<uint32_t> vals;
 	for (size_t i = 0; i < 100; i++) {
 		vals.push_back(rand());
+		buf.add(vals.back());
 	}
 	for (size_t i = 0; i < 100; i++) {
 		DU_ASSERT(buf.get(i) == vals[i]);

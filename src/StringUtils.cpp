@@ -999,6 +999,17 @@ exit_err:
 	}
 }
 
+int StringUtils::getDecimalsForPrecision(double v, uint8_t n_precision) {
+	if (v == 0)
+		return n_precision;
+
+	const double l = std::log10(v);
+	const int off = std::min((int)std::floor(l), 0);
+
+	return -(off - (n_precision-1));
+}
+
+
 std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* str_end) {
 	if (str_end == nullptr){
 		str_end = str + std::strlen(str);
