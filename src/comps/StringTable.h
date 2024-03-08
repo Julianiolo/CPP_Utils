@@ -10,8 +10,6 @@
 #include "DataUtils.h"
 
 
-#if 1
-
 class StringTable {
 protected:
 	std::vector<char> data;
@@ -43,8 +41,8 @@ public:
 		if (str_end == 0)
 			str_end = str + std::strlen(str);
 
-		size_t len = str_end - str;
-		size_t totalLen = nullTerm ? len + 1 : len;
+		const size_t len = str_end - str;
+		const size_t totalLen = nullTerm ? len + 1 : len;
 
 		const size_t currDataLen = data.size();
 		data.resize(currDataLen + totalLen);
@@ -63,9 +61,12 @@ public:
 
 	inline const char* getStr(StringTable::str off) const {
 		DU_ASSERT(off < data.size());
-		return &data[0] + off;
+		return &data[off];
 	}
 
+	/*
+		returns the offset that has to be added to all entrys of the given table
+	*/
 	inline size_t addTable(const StringTable& table) {
 		const size_t currDataLen = data.size();
 		if (table.data.size() > 0) {
@@ -78,76 +79,6 @@ public:
 	}
 };
 
-#else
-class StringTable {
-private:
-	std::vector<char> data;
-	size_t currSize = 0;
-	size_t resizeAmt;
-
-
-	void checkSize(size_t addAmt) {
-		if (currSize + addAmt > data.size())
-			data.resize(currSize + addAmt + resizeAmt);
-	}
-public:
-
-	typedef size_t str;
-
-	inline StringTable(size_t resizeAmt = 1000000): resizeAmt(resizeAmt) {
-
-	}
-
-	inline void clear() {
-		data.clear();
-		currSize = 0;
-	}
-
-	inline size_t addStr(const char* str, const char* str_end = 0, bool nullTerm = true) {
-		DU_ASSERT(str_end == 0 || str_end >= str);
-		if (str_end == 0)
-			str_end = str + std::strlen(str);
-
-		size_t len = str_end - str;
-		size_t totalLen = nullTerm ? len + 1 : len;
-		checkSize(totalLen);
-
-		std::memcpy(&data[currSize], str, len);
-
-		if (nullTerm)
-			data[currSize + len] = 0;
-
-		size_t off = currSize;
-		currSize += totalLen;
-
-		return off;
-	}
-
-	inline void setChar(size_t off, char c) {
-		data[off] = c;
-	}
-
-	inline const char* getStr(size_t off) const {
-		return &data[0] + off;
-	}
-
-	inline size_t addTable(const StringTable& table) {
-		checkSize(table.currSize);
-
-		for (size_t i = 0; i < table.currSize; i++) {
-			data[currSize + i] = table.data[i];
-		}
-
-		size_t off = currSize;
-		currSize += table.currSize;
-
-		return off;
-	}
-};
-
-
-#endif
-
 class CachingStringTable : public StringTable {
 private:
 	std::unordered_map<std::string_view, StringTable::str> cache;
@@ -155,6 +86,10 @@ public:
 	inline void clear() {
 		cache.clear();
 		StringTable::clear();
+	}
+
+	inline void clearCache() {
+		cache.clear();
 	}
 
 	inline size_t addStr(const char* str, const char* str_end = 0, bool nullTerm = true) {
@@ -166,14 +101,16 @@ public:
 		if (str_end == 0)
 			str_end = str + std::strlen(str);
 
-		auto res = cache.find(std::string_view(str, str_end - str));
+		const size_t str_len = str_end - str;
+
+		auto res = cache.find(std::string_view(str, str_len));
 		if (res != cache.end()) {
 			return res->second;
 		}
 
-		size_t off = StringTable::addStr(str, str_end, nullTerm);
+		const size_t off = StringTable::addStr(str, str_end, nullTerm);
 
-		cache[std::string_view(getStr(off), str_end-str)] = off;
+		cache[std::string_view(getStr(off), str_len)] = off;
 
 		return off;
 	}

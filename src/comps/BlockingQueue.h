@@ -30,6 +30,10 @@ public:
         data.push(std::move(t));
     }
 
+    /*
+        Blocks until a value is present to take.
+        When the queue is shutdown it will stop blocking and return None.
+    */
     std::optional<T> take() {
         std::unique_lock<std::mutex> lock(mutex);
 
@@ -48,12 +52,17 @@ public:
     }
 
     std::optional<T> poll() {
+        if (is_shutdown)
+            return {};
+
         std::unique_lock<std::mutex> lock(mutex);
         if(data.size() > 0){
             T item = std::move(data.front());
             data.pop();
             return item;
         }
+
+        return {};
     }
 
     size_t get_num_waiting() const {
