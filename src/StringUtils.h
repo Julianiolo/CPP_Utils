@@ -351,15 +351,15 @@ namespace StringUtils {
 	}
 
 	template<typename CHAR_TYPE>
-	constexpr const CHAR_TYPE* getFileName(const CHAR_TYPE* path, const CHAR_TYPE* path_end = NULL){
+	constexpr const CHAR_TYPE* getFileName(const CHAR_TYPE* path, const CHAR_TYPE* path_end = NULL, bool acceptBackSlash = true){
 		if (path_end == 0)
 			path_end = path + StringUtils::ustrlen(path);
 
-		while(path+1 <= path_end && (*(path_end-1) == (CHAR_TYPE)'/' || *(path_end-1) == (CHAR_TYPE)'\\'))
+		while(path+1 <= path_end && (*(path_end-1) == (CHAR_TYPE)'/' || (acceptBackSlash && *(path_end-1) == (CHAR_TYPE)'\\')))
 			path_end--;
 
 		const CHAR_TYPE* lastSlash = StringUtils::findCharInStrFromBack((CHAR_TYPE)'/', path, path_end);
-		const CHAR_TYPE* lastBSlash = StringUtils::findCharInStrFromBack((CHAR_TYPE)'\\', path, path_end);
+		const CHAR_TYPE* lastBSlash = acceptBackSlash ? StringUtils::findCharInStrFromBack((CHAR_TYPE)'\\', path, path_end) : nullptr;
 
 		if (lastSlash == nullptr && lastBSlash == nullptr) {
 			return path;
@@ -369,11 +369,11 @@ namespace StringUtils {
 
 		return lastDiv + 1;
 	}
-	inline const char* getFileName(const std::string& str) {
-		return StringUtils::getFileName<char>(str.c_str(), str.c_str() + str.size());
+	inline const char* getFileName(const std::string& str, bool acceptBackSlash = true) {
+		return StringUtils::getFileName<char>(str.c_str(), str.c_str() + str.size(), acceptBackSlash);
 	}
-	inline const wchar_t* getFileName(const std::wstring& str) {
-		return StringUtils::getFileName<wchar_t>(str.c_str(), str.c_str() + str.size());
+	inline const wchar_t* getFileName(const std::wstring& str, bool acceptBackSlash = true) {
+		return StringUtils::getFileName<wchar_t>(str.c_str(), str.c_str() + str.size(), acceptBackSlash);
 	}
 	
 	template<typename CHAR_TYPE>
