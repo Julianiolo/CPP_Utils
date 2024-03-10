@@ -166,11 +166,13 @@ public:
 	CachingStringTable& operator=(const CachingStringTable& other) {
 		StringTable::operator=(other);
 		constructUpdatedCache(other.cache);
+		return *this;
 	}
 	CachingStringTable& operator=(CachingStringTable&& other) {
 		StringTable::operator=(std::move(other));
 		constructUpdatedCache(other.cache);
 		other.cache.clear();
+		return *this;
 	}
 
 	inline void clear() {

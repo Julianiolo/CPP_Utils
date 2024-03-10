@@ -128,7 +128,7 @@ void FileUtils::fileModeToStr(char* buf, uint32_t mode) {
 	buf[10] = '\0';
 }
 
-FileUtils::CmpFileError::CmpFileError(ErrSource src, const std::ios_base::failure& e) : src_(src), std::ios_base::failure(e) {
+FileUtils::CmpFileError::CmpFileError(ErrSource src, const std::ios_base::failure& e) : std::ios_base::failure(e), src_(src) {
 
 }
 FileUtils::CmpFileError::ErrSource FileUtils::CmpFileError::src() const {
