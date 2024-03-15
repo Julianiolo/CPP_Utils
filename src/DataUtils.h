@@ -310,67 +310,6 @@ namespace DataUtils {
 		T& get() { return val; };
 	};
 
-	class ReadByteStream {
-	public:
-		class NoDataLeftException : public std::runtime_error {
-		public:
-			size_t off;
-			size_t getAmt;
-			size_t dataLen;
-			NoDataLeftException(size_t off, size_t getAmt, size_t dataLen);
-		};
-
-		const uint8_t* data;
-		size_t dataLen;
-		bool lsbFirst;
-
-		size_t off;
-
-		ReadByteStream(const uint8_t* data, size_t dataLen, bool isLsbFirst = true, size_t startOff = 0);
-
-		void setIsLsbFirst(bool isLsbFirst);
-		void setLen(size_t len);
-
-		uint64_t getInt(size_t numBytes);
-		uint8_t getByte(bool advance = true);
-		uint8_t getByteAt(size_t off) const;
-		std::string_view getBytes(size_t amt);
-		void read(uint8_t* dest, size_t amt);
-		std::string_view readStr(char term = 0, bool stopOnEnd = false);
-
-		void advance(size_t amt);
-		void goTo(size_t offset);
-		size_t getOff() const;
-
-		bool canReadAmt(size_t amt) const;
-		bool hasLeft() const;
-	};
-
-	class WriteByteStream {
-	public:
-		uint8_t* data;
-		size_t off;
-		size_t dataLen;
-		bool lsbFirst;
-
-		WriteByteStream(uint8_t* data, size_t dataLen, bool lsbFirst = false);
-
-		void write(uint8_t value);
-		void write(int8_t value);
-		void write(uint16_t value);
-		void write(int16_t value);
-		void write(uint32_t value);
-		void write(int32_t value);
-		void write(uint64_t value);
-		void write(int64_t value);
-
-		void writeBytes(const uint8_t* buf, size_t bufLen);
-
-	private:
-		template<typename T>
-		void writeInt(T value);
-	};
-
 	namespace EditMemory {
 		enum {
 			EditBase_2 = 0,
