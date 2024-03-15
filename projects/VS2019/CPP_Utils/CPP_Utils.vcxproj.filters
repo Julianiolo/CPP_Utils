@@ -57,6 +57,12 @@
     <ClCompile Include="..\..\..\tests\BlockingQueueTest.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\comps\ByteStreamReader.cpp">
+      <Filter>Source Files\comps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\comps\ByteStreamWriter.cpp">
+      <Filter>Source Files\comps</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\SystemUtils.h">
@@ -111,6 +117,12 @@
       <Filter>Source Files\comps</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\comps\ActionManager.h">
+      <Filter>Source Files\comps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\comps\ByteStreamReader.h">
+      <Filter>Source Files\comps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\comps\ByteStreamWriter.h">
       <Filter>Source Files\comps</Filter>
     </ClInclude>
   </ItemGroup>

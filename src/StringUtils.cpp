@@ -18,6 +18,8 @@
 #include "DataUtils.h"
 #include "MathUtils.h"
 
+#include "comps/ByteStreamReader.h"
+
 #ifdef __EMSCRIPTEN__
 	#include "emscripten.h"
 #endif
@@ -1024,7 +1026,7 @@ std::vector<uint8_t> StringUtils::parseHexFileStr(const char* str, const char* s
 		}
 	}
 
-	DataUtils::ReadByteStream stream((const uint8_t*)str, strl);
+	ByteStreamReader stream((const uint8_t*)str, strl);
 
 	std::vector<uint8_t> res;
 
