@@ -6,9 +6,9 @@
 #include <cstdbool>
 
 #ifndef _NO_EXCEPTIONS
-#include "StringUtils.h"
+#include "../StringUtils.h"
 #endif
-#include "DataUtils.h"
+#include "../DataUtils.h"
 
 template<typename T, typename CONT = std::vector<T>>
 class RingBuffer{
