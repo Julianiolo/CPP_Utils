@@ -2,8 +2,8 @@
 
 #include <cstring> // memcpy
 
-#include "StringUtils.h"
-#include "CompilerUtils.h"
+#include "../StringUtils.h"
+#include "../CompilerUtils.h"
 
 ByteStreamReader::NoDataLeftException::NoDataLeftException(size_t off, size_t getAmt, size_t dataLen) 
 	: std::runtime_error(StringUtils::format("Trying to get %" CU_PRIuSIZE " Bytes but only %" CU_PRIuSIZE " are left! total: %" CU_PRIuSIZE, getAmt, dataLen-off,dataLen)), 

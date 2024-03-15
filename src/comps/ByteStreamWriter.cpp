@@ -1,7 +1,7 @@
 #include "ByteStreamWriter.h"
 
 #include <cstring> // memcpy
-#include "DataUtils.h"
+#include "../DataUtils.h"
 
 ByteStreamWriter::ByteStreamWriter(uint8_t* data, size_t dataLen, bool lsbFirst) : data(data), off(0), dataLen(dataLen), lsbFirst(lsbFirst) {
 
