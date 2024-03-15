@@ -44,25 +44,25 @@ public:
         num_waiting--;
         
         if(is_shutdown)
-            return std::optional<T>();
+            return std::nullopt;
         
         T item = std::move(data.front());
         data.pop();
-        return item;
+        return std::make_optional(std::move(item));
     }
 
     std::optional<T> poll() {
         if (is_shutdown)
-            return {};
+            return std::nullopt;
 
         std::unique_lock<std::mutex> lock(mutex);
         if(data.size() > 0){
             T item = std::move(data.front());
             data.pop();
-            return item;
+            return std::make_optional(std::move(item));
         }
 
-        return {};
+        return std::nullopt;
     }
 
     size_t get_num_waiting() const {
