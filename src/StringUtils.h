@@ -172,6 +172,7 @@ namespace StringUtils {
 #else
 		char* buf = new char[digits + 1];
 		uIntToHexBuf<upperCase>(num, buf, digits, pad);
+		buf[digits] = 0;
 		std::string s(buf);
 		delete[] buf;
 		return s;
