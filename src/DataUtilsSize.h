@@ -69,13 +69,21 @@ namespace DataUtils {
 	}
 	template<typename T, typename Alloc>
 	size_t approxSizeOf(const std::vector<T,Alloc>& v) {
-		size_t sum = 0;
-		sum += sizeof(std::vector<T, Alloc>);
-		for (const auto& e : v) sum += approxSizeOf(e);
+		if constexpr (std::is_trivially_copyable_v<T> && std::is_trivially_move_assignable_v<T>) {
+			size_t sum = sizeof(std::vector<T, Alloc>);
+			if (v.capacity() > 0)
+				sum += v.capacity() * approxSizeOf(v[0]);
+			return sum;
+		}
+		else {
+			size_t sum = 0;
+			sum += sizeof(std::vector<T, Alloc>);
+			for (const auto& e : v) sum += approxSizeOf(e);
 
-		sum += (v.capacity() - v.size()) * sizeof(T);
+			sum += (v.capacity() - v.size()) * sizeof(T);
 
-		return sum;
+			return sum;
+		}
 	}
 	template<typename T, typename Alloc, typename SIZEFNC>
 	size_t approxSizeOf(const std::vector<T,Alloc>& v, SIZEFNC sf) {
@@ -89,23 +97,44 @@ namespace DataUtils {
 	}
 	template<typename T, size_t N>
 	size_t approxSizeOf(const std::array<T,N>& v) {
-		size_t sum = 0;
-		for (const auto& e : v) sum += approxSizeOf(e);
-		return sum;
+		if constexpr (std::is_trivially_copyable_v<T> && std::is_trivially_move_assignable_v<T>) {
+			return sizeof(std::array<T, N>);
+		}
+		else {
+			size_t sum = 0;
+			for (const auto& e : v) sum += approxSizeOf(e);
+			return sum;
+		}
 	}
 	template<typename T, typename Traits, typename Alloc>
 	size_t approxSizeOf(const std::set<T,Traits,Alloc>& v) {
-		size_t sum = 0;
-		sum += sizeof(std::set<T, Traits, Alloc>);
-		for (const auto& e : v) sum += approxSizeOf(e);
-		return sum;
+		if constexpr (std::is_trivially_copyable_v<T> && std::is_trivially_move_assignable_v<T>) {
+			size_t sum = sizeof(std::set<T, Traits, Alloc>);
+			if (v.capacity() > 0)
+				sum += v.capacity() * approxSizeOf(*v.begin());
+			return sum;
+		}
+		else {
+			size_t sum = 0;
+			sum += sizeof(std::set<T, Traits, Alloc>);
+			for (const auto& e : v) sum += approxSizeOf(e);
+			return sum;
+		}
 	}
 	template<typename T, typename Traits, typename Alloc>
 	size_t approxSizeOf(const std::unordered_set<T,Traits,Alloc>& v) {
-		size_t sum = 0;
-		sum += sizeof(std::unordered_set<T, Traits, Alloc>);
-		for (const auto& e : v) sum += approxSizeOf(e);
-		return sum;
+		if constexpr (std::is_trivially_copyable_v<T> && std::is_trivially_move_assignable_v<T>) {
+			size_t sum = sizeof(std::unordered_set<T, Traits, Alloc>);
+			if (v.size() > 0)
+				sum += v.size() * approxSizeOf(*v.begin());
+			return sum;
+		}
+		else {
+			size_t sum = 0;
+			sum += sizeof(std::unordered_set<T, Traits, Alloc>);
+			for (const auto& e : v) sum += approxSizeOf(e);
+			return sum;
+		}
 	}
 	template<typename T1, typename T2>
 	size_t approxSizeOf(const std::pair<T1,T2>& v) {
