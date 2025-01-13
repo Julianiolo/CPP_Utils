@@ -15,7 +15,7 @@ private:
     std::mutex mutex;
     std::condition_variable not_empty_cond;
 
-    std::atomic<bool> is_shutdown = false;
+    std::atomic<bool> is_shutdown_ = false;
 
     std::atomic<size_t> num_waiting = 0;
 
@@ -39,11 +39,11 @@ public:
 
         num_waiting++;
         not_empty_cond.wait(lock, [this] {
-            return !data.empty() || is_shutdown;
+            return !data.empty() || is_shutdown();
         });
         num_waiting--;
         
-        if(is_shutdown)
+        if(is_shutdown())
             return std::nullopt;
         
         T item = std::move(data.front());
@@ -52,7 +52,7 @@ public:
     }
 
     std::optional<T> poll() {
-        if (is_shutdown)
+        if (is_shutdown())
             return std::nullopt;
 
         std::unique_lock<std::mutex> lock(mutex);
@@ -75,8 +75,12 @@ public:
     }
 
     void shutdown() {
-        is_shutdown = true;
+        is_shutdown_ = true;
         not_empty_cond.notify_all();
+    }
+
+    bool is_shutdown() const {
+        return is_shutdown_;
     }
 };
 
