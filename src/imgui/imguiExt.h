@@ -338,7 +338,7 @@ void ImGuiExt::ImageRect(const Texture2D& tex, float destWidth, float destHeight
         uv1.y = uv0.y + (float)(srcRect.height / tex.height);
     }
 
-    ImGui::Image((ImTextureID*)&tex, ImVec2(float(destWidth), float(destHeight)),uv0,uv1);
+    ImGui::Image((ImTextureID)&tex, ImVec2(float(destWidth), float(destHeight)),uv0,uv1);
 }
 
 void ImGuiExt::Rect(const char* desc_id, const ImVec4& col, ImVec2 size) {
