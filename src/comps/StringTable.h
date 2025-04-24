@@ -159,7 +159,7 @@ public:
 	CachingStringTable(const CachingStringTable& other) : StringTable(other), cache() {
 		constructUpdatedCache(other.cache);
 	}
-	CachingStringTable(CachingStringTable&& other) : StringTable(std::move(other)), cache() {
+	CachingStringTable(CachingStringTable&& other) noexcept : StringTable(std::move(other)), cache() {
 		constructUpdatedCache(other.cache);
 	}
 
@@ -168,7 +168,7 @@ public:
 		constructUpdatedCache(other.cache);
 		return *this;
 	}
-	CachingStringTable& operator=(CachingStringTable&& other) {
+	CachingStringTable& operator=(CachingStringTable&& other) noexcept {
 		StringTable::operator=(std::move(other));
 		constructUpdatedCache(other.cache);
 		other.cache.clear();

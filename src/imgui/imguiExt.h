@@ -13,8 +13,12 @@
 
 #include "../DataUtils.h"
 
+#ifdef IMVEC4_OPS
+
 static inline ImVec4  operator*(const ImVec4& lhs, const float rhs)     { return ImVec4(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs, lhs.w * rhs); }
 static inline ImVec4  operator/(const ImVec4& lhs, const float rhs)     { return ImVec4(lhs.x / rhs, lhs.y / rhs, lhs.z / rhs, lhs.w / rhs); }
+
+#endif
 
 namespace ImGuiExt {
 	void TextColored(const ImVec4& col, const char* text_start, const char* text_end = NULL);
