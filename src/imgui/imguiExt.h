@@ -74,7 +74,7 @@ namespace ImGuiExt {
                 label = buf;
             }
 
-            if (ImGui::Selectable(label, !!((*selected) & (1<<bitInd)), ImGuiSelectableFlags_NoPadWithHalfSpacing | ImGuiSelectableFlags_DontClosePopups, ImVec2(size.x / num, size.y))) {
+            if (ImGui::Selectable(label, !!((*selected) & (1<<bitInd)), (int)ImGuiSelectableFlags_NoPadWithHalfSpacing | (int)ImGuiSelectableFlags_DontClosePopups, ImVec2(size.x / num, size.y))) {
                 (*selected) ^= 1<<bitInd;
                 changed = true;
             }
@@ -302,7 +302,7 @@ size_t ImGuiExt::SelectSwitch(const char* str_id, const char* const * labels, si
         ImGui::PushID((int)i);
         if (i > 0)
             ImGui::SameLine();
-        if (ImGui::Selectable(labels[i], selected == i, ImGuiSelectableFlags_NoPadWithHalfSpacing | ImGuiSelectableFlags_DontClosePopups, ImVec2(size.x / num, size.y))) {
+        if (ImGui::Selectable(labels[i], selected == i, (int)ImGuiSelectableFlags_NoPadWithHalfSpacing | (int)ImGuiSelectableFlags_DontClosePopups, ImVec2(size.x / num, size.y))) {
             selected = i;
             //changed = true;
         }
