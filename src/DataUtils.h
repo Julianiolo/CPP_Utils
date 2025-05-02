@@ -18,7 +18,7 @@
 
 
 [[noreturn]] inline void __assertion_failed__(const char* exp, const char* file, int line) {
-	printf("Assertion Failed: %s [%s:%d]\n", exp, file, line);
+	printf("\nAssertion Failed: %s [%s:%d]\n", exp, file, line);
 	abort();
 }
 #define DU_ASSERT(x) do {\

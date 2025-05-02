@@ -111,6 +111,24 @@ namespace ImGuiExt {
     // right align
     bool RA_Button(const char* str, const ImVec2& size_arg = {0,0});
     void RightAlignText(const char* str, const char* str_end = 0);
+
+    struct PushIDRAII {
+        inline PushIDRAII(int id) {
+            ImGui::PushID(id);
+        }
+        inline PushIDRAII(const void* ptr) {
+            ImGui::PushID(ptr);
+        }
+        inline PushIDRAII(const char* str_id) {
+            ImGui::PushID(str_id);
+        }
+        inline PushIDRAII(const char* str_id, const char* str_id_end) {
+            ImGui::PushID(str_id, str_id_end);
+        }
+        inline ~PushIDRAII() {
+            ImGui::PopID();
+        }
+    };
 }
 
 #if defined(IMGUIEXT_IMPLEMENTATION)
