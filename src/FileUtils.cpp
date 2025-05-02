@@ -135,9 +135,9 @@ FileUtils::CmpFileError::ErrSource FileUtils::CmpFileError::src() const {
 	return src_;
 }
 
-bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, char* buf2, size_t bufSize, std::function<bool(uint64_t,uint64_t)> callB) {
+std::optional<FileUtils::CmpFileResult> FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, char* buf2, size_t bufSize, std::function<bool(uint64_t,uint64_t)> callB) {
 	if (callB != NULL && callB((uint64_t)-1, (uint64_t)-1))
-		return false;
+		return std::nullopt;
 
 	DataUtils::AlignedBuffer buf;
 	if (buf1 == NULL || buf2 == NULL || bufSize == 0) {
@@ -154,9 +154,10 @@ bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, c
 	}
 
 	if (callB != NULL && callB((uint64_t)-1, (uint64_t)-1))
-		return false;
+		return std::nullopt;
 
 	CmpFileError::ErrSource src = CmpFileError::ErrSource::A;
+	CmpFileResult result;
 
 	try {
 		constexpr auto A = CmpFileError::ErrSource::A;
@@ -178,22 +179,24 @@ bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, c
 
 		src = A;
 		f1.seekg(0, std::ios::end);
-		const uint64_t f1Size = f1.tellg();
+		result.size_a = f1.tellg();
 		f1.seekg(0, std::ios::beg);
 
 		src = B;
 		f2.seekg(0, std::ios::end);
-		const uint64_t f2Size = f2.tellg();
+		result.size_b = f2.tellg();
 		f2.seekg(0, std::ios::beg);
 
-		if (f1Size != f2Size)
-			return false;
+		if (result.size_a != result.size_b)
+			return result;
 
-		if (callB != NULL && callB(0, f1Size))
-			return false;
+		const auto file_size = result.size_a;
 
-		for (uint64_t o = 0; o < f1Size; o+= bufSize) {
-			size_t readAmt = (size_t)std::min(f1Size - o, (uint64_t)bufSize);
+		if (callB != NULL && callB(0, file_size))
+			return std::nullopt;
+
+		for (uint64_t o = 0; o < file_size; o+= bufSize) {
+			size_t readAmt = (size_t)std::min(file_size - o, (uint64_t)bufSize);
 
 			src = A;
 			f1.read(buf1, readAmt);
@@ -202,18 +205,22 @@ bool FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, c
 			f2.read(buf2, readAmt);
 
 			if (std::memcmp(buf1, buf2, readAmt) != 0) {
-				return false;
+				auto res = std::mismatch(buf1, buf1+readAmt, buf2);
+				result.cmp_offset = o + std::distance(buf1, res.first);
+				return result;
 			}
 
-			if (callB != NULL && callB(o+readAmt, f1Size))
-				return false;
+			if (callB != NULL && callB(o+readAmt, file_size))
+				return std::nullopt;
 		}
 	}
 	catch (const std::ios_base::failure& e) {
 		throw CmpFileError(src, e);
 	}
 
-	return true;
+	result.are_same = true;
+
+	return result;
 }
 
 
