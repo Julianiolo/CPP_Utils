@@ -135,7 +135,7 @@ FileUtils::CmpFileError::ErrSource FileUtils::CmpFileError::src() const {
 	return src_;
 }
 
-std::optional<FileUtils::CmpFileResult> FileUtils::compareFiles(const char* path1, const char* path2, char* buf1, char* buf2, size_t bufSize, std::function<bool(uint64_t,uint64_t)> callB) {
+std::optional<FileUtils::CmpFileResult> FileUtils::compareFiles(PathType path1, PathType path2, char* buf1, char* buf2, size_t bufSize, std::function<bool(uint64_t,uint64_t)> callB) {
 	if (callB != NULL && callB((uint64_t)-1, (uint64_t)-1))
 		return std::nullopt;
 

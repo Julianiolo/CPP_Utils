@@ -5,6 +5,9 @@
 #include <functional>
 #include <ios>
 #include <optional>
+#if defined(__cpp_lib_filesystem)
+#include <filesystem>
+#endif
 
 namespace FileUtils {
     bool checkHardlinkedTogether(const char* path1, const char* path2);
@@ -34,7 +37,12 @@ namespace FileUtils {
     /*
         callB is of form (uint64_t has_read, uint64_t total_size) -> bool; should return true, if comparing should be stopped
     */
-    std::optional<CmpFileResult> compareFiles(const char* pathA, const char* pathB, char* bufA=NULL, char* bufB=NULL, size_t bufSize=0, std::function<bool(uint64_t,uint64_t)> callB=NULL);
+#if !defined(__cpp_lib_filesystem)
+    using PathType = const char*;
+#else
+    using PathType = const std::filesystem::path&;
+#endif
+    std::optional<CmpFileResult> compareFiles(PathType pathA, PathType pathB, char* bufA=NULL, char* bufB=NULL, size_t bufSize=0, std::function<bool(uint64_t,uint64_t)> callB=NULL);
 
     class MappedFile {
     private:
