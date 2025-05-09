@@ -92,14 +92,14 @@ namespace DataUtils {
 				return mid;
 			}
 			else if (cmp < 0) {
-				if (mid == to)
+				if (mid-1 == to)
 					goto fail;
-				to = mid;
+				to = mid-1;
 			}
 			else {
-				if (mid == from)
+				if (mid+1 == from)
 					goto fail;
-				from = mid;
+				from = mid+1;
 			}
 		}
 

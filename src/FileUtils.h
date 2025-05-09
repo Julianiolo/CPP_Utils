@@ -5,6 +5,9 @@
 #include <functional>
 #include <ios>
 #include <optional>
+#if __cplusplus >= 202002L
+#include <version>
+#endif
 #if defined(__cpp_lib_filesystem)
 #include <filesystem>
 #endif
@@ -38,6 +41,7 @@ namespace FileUtils {
         callB is of form (uint64_t has_read, uint64_t total_size) -> bool; should return true, if comparing should be stopped
     */
 #if !defined(__cpp_lib_filesystem)
+    #error "lel"
     using PathType = const char*;
 #else
     using PathType = const std::filesystem::path&;

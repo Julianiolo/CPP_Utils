@@ -16,7 +16,7 @@ endif
 CFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing $(CUSTOM_CFLAGS)
 CXXFLAGS:=-Wall -Wextra -Wpedantic -Wno-narrowing $(CUSTOM_CXXFLAGS)
 CSTD:=-std=c99
-CXXSTD_:=-std=gnu++17
+CXXSTD:=-std=gnu++17
 RELEASE_OPTIM?=-O3 -flto
 
 PROJECT_NAME:=CPP_Utils
@@ -85,7 +85,7 @@ $(OUT_PATH):$(OBJ_FILES) #$(DEP_LIBS_BUILD_DIR)$(PROJECT_NAME)_depFile.dep
 
 $(OBJ_DIR)%.o:%.cpp
 	mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(CXXSTD_) $(DEF_FLAGS) $(DEP_INCLUDE_FLAGS) -c $< -o $@ $(DEP_FLAGS)
+	$(CXX) $(CXXFLAGS) $(CXXSTD) $(DEF_FLAGS) $(DEP_INCLUDE_FLAGS) -c $< -o $@ $(DEP_FLAGS)
 
 -include $(DEP_FILES)
 
