@@ -21,9 +21,9 @@ namespace FileUtils {
 
     struct CmpFileResult {
         bool are_same = false;
-        uint64_t size_a = -1;
-        uint64_t size_b = -1;
-        uint64_t cmp_offset = -1;
+        uint64_t size_a = (uint64_t)-1;
+        uint64_t size_b = (uint64_t)-1;
+        uint64_t cmp_offset = (uint64_t)-1;
     };
 
     class CmpFileError : public std::ios_base::failure {
