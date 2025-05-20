@@ -885,14 +885,25 @@ stof_end:
 }
 
 std::string StringUtils::formatTimestamp(const char* fmt, uint64_t time) {
-	time_t time_ = time;
-	auto* tm = std::localtime(&time_);
-	if (tm == nullptr) return "ERR localtime";
 	char buf[256];
-	size_t ret = std::strftime(buf, sizeof(buf), fmt, tm);
-	if(ret == 0) return "ERR strftime";
+	formatTimestampBuf(buf, sizeof(buf), fmt, time);
 	return buf;
 }
+void StringUtils::formatTimestampBuf(char* buf, size_t buf_size, const char* fmt, uint64_t time) {
+	time_t time_ = time;
+	auto* tm = std::localtime(&time_);
+	if (tm == nullptr) {
+		std::snprintf(buf, buf_size, "ERR localtime: %s", std::strerror(errno));
+		return;
+	}
+	size_t ret = std::strftime(buf, buf_size, fmt, tm);
+	if (ret == 0) {
+		std::snprintf(buf, buf_size, "ERR strftime: %s", std::strerror(errno));
+		return;
+	}
+}
+
+
 
 std::vector<size_t> StringUtils::generateLineIndexArr(const char* str) {
 	std::vector<size_t> lines;

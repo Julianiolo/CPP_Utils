@@ -401,6 +401,7 @@ namespace StringUtils {
 	*/
 
 	std::string formatTimestamp(const char* fmt, uint64_t time);
+	void formatTimestampBuf(char* buf, size_t buf_size, const char* fmt, uint64_t time);
 
 	std::vector<size_t> generateLineIndexArr(const char* str);
 
