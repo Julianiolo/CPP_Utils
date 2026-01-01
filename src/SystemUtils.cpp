@@ -19,9 +19,31 @@
 
 #include <fstream>
 #include <cmath>
+#include <string>
 
 #include "StringUtils.h"
 #include "DataUtils.h"
+
+#ifdef _WIN32
+inline std::wstring toWstr(const char* str) {
+    const size_t str_len = std::strlen(str);
+    if (str_len > INT_MAX)
+        throw std::runtime_error("toWstr failed: input str too long");
+
+    const int size = MultiByteToWideChar(CP_UTF8, 0, str, (int)str_len, NULL, 0);
+    if (size == 0)
+        throw std::runtime_error(std::string("toWstr failed: ") + SystemUtils::getErrorCodeMsg(GetLastError()));
+
+    std::wstring wstr;
+    wstr.resize(size);
+
+    if (MultiByteToWideChar(CP_UTF8, 0, str, (int)str_len, &wstr[0], size) == 0)
+        throw std::runtime_error(std::string("toWstr failed: ") + SystemUtils::getErrorCodeMsg(GetLastError()));
+
+    return wstr;
+}
+#endif
+
 
 bool SystemUtils::revealInFileExplorer(const char* path_) {
 	// wtf this is way too hard, currently we can just open the folder, at least on windows we should be able to select the file
@@ -59,7 +81,8 @@ bool SystemUtils::revealInFileExplorer(const char* path_) {
 #endif
 	if (cmd.size() > 0) {
 		printf(">%s\n", cmd.c_str());
-		return system(cmd.c_str()) != -1;
+        auto wstr = toWstr(cmd.c_str());
+		return _wsystem(wstr.c_str()) != -1;
 	}
 	return false;
 #ifdef _WIN32
