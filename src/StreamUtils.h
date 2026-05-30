@@ -11,7 +11,7 @@
 #include <unordered_set>
 
 namespace StreamUtils {
-    template<typename T, std::enable_if<std::is_integral<T>{}, bool>::type = true>
+    template<typename T, std::enable_if_t<std::is_integral<T>{}, bool> = true>
     void write(std::ostream& stream, const T& val) {
         constexpr size_t size = sizeof(T);
         for(size_t i = size-1; i>0; i--) {
@@ -23,7 +23,7 @@ namespace StreamUtils {
         stream.write(&v,1);
     }
 
-    template<typename T, std::enable_if<std::is_floating_point<T>{}, bool>::type = true>
+    template<typename T, std::enable_if_t<std::is_floating_point<T>{}, bool> = true>
     void write(std::ostream& stream, const T& val) {
         constexpr size_t size = sizeof(T);
         uint64_t val_;
@@ -41,7 +41,7 @@ namespace StreamUtils {
         }
     }
     
-    void write(std::ostream& stream, const char* val) {
+    inline void write(std::ostream& stream, const char* val) {
         const size_t len = std::strlen(val);
         StreamUtils::write(stream, (uint64_t)len);
         stream.write(val, len);
@@ -71,12 +71,12 @@ namespace StreamUtils {
         }
     }
 
-    void write_str(std::ostream& stream, const char* s) {
+    inline void write_str(std::ostream& stream, const char* s) {
         size_t len = std::strlen(s);
         stream.write(s, len + 1);
     }
 
-    template<typename T, std::enable_if<std::is_integral<T>{}, bool>::type = true>
+    template<typename T, std::enable_if_t<std::is_integral<T>{}, bool> = true>
     void read(std::istream& stream, T* val){
         constexpr size_t size = sizeof(T);
 
@@ -97,7 +97,7 @@ namespace StreamUtils {
         }
     }
 
-    template<typename T, std::enable_if<std::is_floating_point<T>{}, bool>::type = true>
+    template<typename T, std::enable_if_t<std::is_floating_point<T>{}, bool> = true>
     void read(std::istream& stream, T* val){
         constexpr size_t size = sizeof(T);
         uint64_t out = 0;

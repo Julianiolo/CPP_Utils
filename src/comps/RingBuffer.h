@@ -3,7 +3,6 @@
 
 #include <iterator>
 #include <stdexcept>
-#include <cstdbool>
 
 #ifndef _NO_EXCEPTIONS
 #include "../StringUtils.h"

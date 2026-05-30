@@ -200,30 +200,53 @@ float ImGuiExt::GetScrollBarHandleLen(ImGuiWindow* window, ImGuiAxis axis) {
 }
 
 ImRect ImGuiExt::GetScrollBarHandleRect(ImGuiWindow* window, ImGuiAxis axis){
+    // this is from ImGui::Scrollbar
     ImRect bb_frame = ImGui::GetWindowScrollbarRect(window,axis);
     float size_avail_v = window->InnerRect.Max[axis] - window->InnerRect.Min[axis];
-    float size_contents_v = window->ContentSize[axis] + window->WindowPadding[axis] * 2.0f;
-    const ImGuiStyle& style = ImGui::GetStyle();
+    float size_visible = window->InnerRect.Max[axis] - window->InnerRect.Min[axis];
+    float size_contents = window->ContentSize[axis] + window->WindowPadding[axis] * 2.0f;
+    
+    ImS64 size_visible_v = (ImS64)size_visible;
+    ImS64 size_contents_v = (ImS64)size_contents;
+
     float* p_scroll_v = &window->Scroll[axis];
 
+
+    // this is from ImGui::ScrollbarEx
     const float bb_frame_width = bb_frame.GetWidth();
     const float bb_frame_height = bb_frame.GetHeight();
     if (bb_frame_width <= 0.0f || bb_frame_height <= 0.0f)
         return ImRect{{0,0},{0,0}};
 
+    // When we are too small, start hiding and disabling the grab (this reduce visual noise on very small window and facilitate using the window resize grab)
+    float alpha = 1.0f;
+    if ((axis == ImGuiAxis_Y) && bb_frame_height < bb_frame_width)
+        alpha = ImSaturate(bb_frame_height / ImMax(bb_frame_width * 2.0f, 1.0f));
+    if (alpha <= 0.0f)
+        return ImRect{{0,0},{0,0}};
+
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const bool allow_interaction = (alpha >= 1.0f);
+
     ImRect bb = bb_frame;
-    bb.Expand(ImVec2(-ImClamp(IM_FLOOR((bb_frame_width - 2.0f) * 0.5f), 0.0f, 3.0f), -ImClamp(IM_FLOOR((bb_frame_height - 2.0f) * 0.5f), 0.0f, 3.0f)));
-    
+    float padding = IM_TRUNC(ImMin(style.ScrollbarPadding, ImMin(bb_frame_width, bb_frame_height) * 0.5f));
+    bb.Expand(-padding);
+
     // V denote the main, longer axis of the scrollbar (= height for a vertical scrollbar)
     const float scrollbar_size_v = (axis == ImGuiAxis_X) ? bb.GetWidth() : bb.GetHeight();
+    if(scrollbar_size_v < 1.0f)
+        return ImRect{{0,0},{0,0}};
 
     // Calculate the height of our grabbable box. It generally represent the amount visible (vs the total scrollable amount)
     // But we maintain a minimum size in pixel to allow for the user to still aim inside.
-    const float win_size_v = ImMax(ImMax(size_contents_v, size_avail_v), 1.0f);
-    const float grab_h_pixels = ImClamp(scrollbar_size_v * (size_avail_v / win_size_v), style.GrabMinSize, scrollbar_size_v);
+    IM_ASSERT(ImMax(size_contents_v, size_visible_v) > 0.0f); // Adding this assert to check if the ImMax(XXX,1.0f) is still needed. PLEASE CONTACT ME if this triggers.
+    const ImS64 win_size_v = ImMax(ImMax(size_contents_v, size_visible_v), (ImS64)1);
+    const float grab_h_minsize = ImMin(bb.GetSize()[axis], style.GrabMinSize);
+    const float grab_h_pixels = (float)(int)ImClamp(scrollbar_size_v * ((float)size_visible_v / (float)win_size_v), grab_h_minsize, scrollbar_size_v);
+    const float grab_h_norm = grab_h_pixels / scrollbar_size_v;
     
-    float scroll_max = ImMax(1.0f, size_contents_v - size_avail_v);
-    float scroll_ratio = ImSaturate(*p_scroll_v / scroll_max);
+    const ImS64 scroll_max = ImMax((ImS64)1, size_contents_v - size_visible_v);
+    float scroll_ratio = ImSaturate((float)*p_scroll_v / (float)scroll_max);
     float grab_v_norm = scroll_ratio * (scrollbar_size_v - grab_h_pixels) / scrollbar_size_v; // Grab position in normalized space
 
     ImRect grab_rect;
