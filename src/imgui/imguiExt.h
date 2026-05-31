@@ -21,6 +21,10 @@ static inline ImVec4  operator/(const ImVec4& lhs, const float rhs)     { return
 #endif
 
 namespace ImGuiExt {
+    inline ImTextureID TextureToImTextureID(const Texture2D& tex) {
+        return (ImTextureID)tex.id;
+    }
+
 	void TextColored(const ImVec4& col, const char* text_start, const char* text_end = NULL);
 	void PushTextColor(const ImVec4& col);
 	void PopTextColor();
@@ -383,7 +387,7 @@ void ImGuiExt::ImageRect(const Texture2D& tex, float destWidth, float destHeight
         uv1.y = uv0.y + (float)(srcRect.height / tex.height);
     }
 
-    ImGui::Image((ImTextureID)&tex, ImVec2(float(destWidth), float(destHeight)),uv0,uv1);
+    ImGui::Image(TextureToImTextureID(tex), ImVec2(float(destWidth), float(destHeight)),uv0,uv1);
 }
 
 void ImGuiExt::Rect(const char* desc_id, const ImVec4& col, ImVec2 size) {
