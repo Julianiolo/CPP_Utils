@@ -10,7 +10,7 @@
 #include <map>
 
 #include "DataUtils.h"
-#include "comps/ringBuffer.h"
+#include "comps/RingBuffer.h"
 
 namespace DataUtils {
 	inline constexpr size_t approxSizeOf(int8_t v) { return sizeof(v); };

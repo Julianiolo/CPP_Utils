@@ -81,8 +81,12 @@ bool SystemUtils::revealInFileExplorer(const char* path_) {
 #endif
 	if (cmd.size() > 0) {
 		printf(">%s\n", cmd.c_str());
+#ifdef _WIN32
         auto wstr = toWstr(cmd.c_str());
 		return _wsystem(wstr.c_str()) != -1;
+#else
+        return system(cmd.c_str()) != -1;
+#endif
 	}
 	return false;
 #ifdef _WIN32
